@@ -1,55 +1,93 @@
-/* A simple server in the internet domain using TCP
-   The port number is passed as an argument */
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <sys/types.h> 
+#include <errno.h>
+#include <string.h>
+#include <netdb.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
-void error(const char *msg)
+#define PORT 3490
+#define BACKLOG 10
+
+int main()
 {
-    perror(msg);
-    exit(1);
+    struct sockaddr_in server;
+    struct sockaddr_in dest;
+    int status,socket_fd, client_fd,num;
+    socklen_t size;
+
+    char buffer[10241];
+    char *buff;
+//  memset(buffer,0,sizeof(buffer));
+    int yes =1;
+
+
+
+    if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0))== -1) {
+        fprintf(stderr, "Socket failure!!\n");
+        exit(1);
+    }
+
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+        perror("setsockopt");
+        exit(1);
+    }
+    memset(&server, 0, sizeof(server));
+    memset(&dest,0,sizeof(dest));
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+    server.sin_addr.s_addr = INADDR_ANY; 
+    if ((bind(socket_fd, (struct sockaddr *)&server, sizeof(struct sockaddr )))== -1)    { //sizeof(struct sockaddr) 
+        fprintf(stderr, "Binding Failure\n");
+        exit(1);
+    }
+
+    if ((listen(socket_fd, BACKLOG))== -1){
+        fprintf(stderr, "Listening Failure\n");
+        exit(1);
+    }
+
+    while(1) {
+
+        size = sizeof(struct sockaddr_in);
+
+        if ((client_fd = accept(socket_fd, (struct sockaddr *)&dest, &size))==-1 ) {
+            perror("accept");
+            exit(1);
+        }
+        printf("Server got connection from client %s\n", inet_ntoa(dest.sin_addr));
+
+        while(1) {
+
+                if ((num = recv(client_fd, buffer, 1024,0))== -1) {
+                        perror("recv");
+                        exit(1);
+                }
+                else if (num == 0) {
+                        printf("Connection closed\n");
+                        //So I can now wait for another client
+                        break;
+                }
+                buffer[num] = '\0';
+                printf("Server:Msg Received %s\n", buffer);
+                if ((send(client_fd,buffer, strlen(buffer),0))== -1) 
+                {
+                     fprintf(stderr, "Failure Sending Message\n");
+                     close(client_fd);
+                     break;
+                }
+
+                printf("Server:Msg being sent: %s\nNumber of bytes sent: %d\n",buffer, (int)strlen(buffer));
+
+        } //End of Inner While...
+        //Close Connection Socket
+        close(client_fd);
+    } //Outer While
+
+    close(socket_fd);
+    return 0;
 }
 
-int main(int argc, char *argv[])
-{
-     int sockfd, newsockfd, portno;
-     socklen_t clilen;
-     char buffer[256];
-     struct sockaddr_in serv_addr, cli_addr;
-     int n;
-     if (argc < 2) {
-         fprintf(stderr,"ERROR, no port provided\n");
-         exit(1);
-     }
-     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-     if (sockfd < 0) 
-        error("ERROR opening socket");
-     bzero((char *) &serv_addr, sizeof(serv_addr));
-     portno = atoi(argv[1]);
-     serv_addr.sin_family = AF_INET;
-     serv_addr.sin_addr.s_addr = INADDR_ANY;
-     serv_addr.sin_port = htons(portno);
-     if (bind(sockfd, (struct sockaddr *) &serv_addr,
-              sizeof(serv_addr)) < 0) 
-              error("ERROR on binding");
-     listen(sockfd,5);
-     clilen = sizeof(cli_addr);
-     newsockfd = accept(sockfd, 
-                 (struct sockaddr *) &cli_addr, 
-                 &clilen);
-     if (newsockfd < 0) 
-          error("ERROR on accept");
-     bzero(buffer,256);
-     n = read(newsockfd,buffer,255);
-     if (n < 0) error("ERROR reading from socket");
-     printf("Here is the message: %s\n",buffer);
-     n = write(newsockfd,"I got your message",18);
-     if (n < 0) error("ERROR writing to socket");
-     close(newsockfd);
-     close(sockfd);
-     return 0; 
-}
