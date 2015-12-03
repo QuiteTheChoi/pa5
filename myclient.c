@@ -1,4 +1,4 @@
-nclude <sys/types.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -18,15 +18,15 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s host port msg...\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    memset(&request, 0, sizeof(struct addrinfo));i
-    request.AI_FLAGS = 0;
-    request.AI_FAMILY = AF_INET;
-    request.AI_SOCKTYPE = SOCK_STREAM;
-    request.AI_PROTOCOL = 0;
-    request.AI_ADDRLENGTH = 0;
-    request.AI_ADDR = NULL;
-    request.AI_CANONNAME = NULL;
-    request.AI_NEXT = NULL;
+    memset(&request, 0, sizeof(struct addrinfo));
+    request.ai_flags = 0;
+    request.ai_family = AF_INET;
+    request.ai_socktype = SOCK_STREAM;
+    request.ai_protocol = 0;
+    request.ai_addrlen = 0;
+    request.ai_addr = NULL;
+    request.ai_canonname = NULL;
+    request.ai_next = NULL;
 
     if (getaddrinfo(argv[1], argv[2], &request, &result) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
