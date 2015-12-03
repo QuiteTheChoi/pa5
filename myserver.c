@@ -9,7 +9,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-int  main () {
+int  main (int argc, char ** argv) {
+
+    char buffer[500];
 
     struct addrinfo request, *result, *rp;
 
@@ -30,7 +32,7 @@ int  main () {
     request.ai_canonname = NULL;
     request.ai_next = NULL;
 
-    check = getaddrinfo(NULL, "server", &request, &result);
+    check = getaddrinfo(NULL, argv[1], &request, &result);
 
     if (check != 0){
         fprintf(stderr, "ERROR!\n");
@@ -57,7 +59,17 @@ int  main () {
 
     listen(sd, 20);
 
-    accept(sd, (struct sockaddr *)&saddr, &saddrlen);
+    while(1){
+        int clientsd;
+
+        clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
+
+        read(clientsd, buffer, sizeof(buffer)-1);
+
+        char * reply = "Message received.\n";
+
+        write(clientsd, reply, strlen(reply));
+    }
 
     return 0;
 
