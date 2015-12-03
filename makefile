@@ -1,3 +1,9 @@
+clie:
+	gcc -g -o clie myclient.c
+
+serv:
+	gcc -g -o serv myserver.c
+
 cav:
 	git add -A
 	git commit -m "Added stuff. - JCav"
@@ -7,3 +13,6 @@ get:
 	git add -A
 	git commit -m "Added stuff. - JGet"
 	git push
+
+clean:
+	rm -rf *.o client server

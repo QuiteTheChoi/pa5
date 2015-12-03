@@ -9,7 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-int  main () {
+int  main (int argc, char ** argv) {
 
     char buffer[500];
 
@@ -32,7 +32,7 @@ int  main () {
     request.ai_canonname = NULL;
     request.ai_next = NULL;
 
-    check = getaddrinfo(NULL, "server", &request, &result);
+    check = getaddrinfo(NULL, argv[1], &request, &result);
 
     if (check != 0){
         fprintf(stderr, "ERROR!\n");
