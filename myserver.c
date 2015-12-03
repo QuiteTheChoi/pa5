@@ -11,6 +11,8 @@
 
 int  main () {
 
+    char buffer[500];
+
     struct addrinfo request, *result, *rp;
 
     struct sockaddr_in saddr;
@@ -57,7 +59,17 @@ int  main () {
 
     listen(sd, 20);
 
-    accept(sd, (struct sockaddr *)&saddr, &saddrlen);
+    while(1){
+        int clientsd;
+
+        clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
+
+        read(clientsd, buffer, sizeof(buffer)-1);
+
+        char * reply = "Message received.\n";
+
+        write(clientsd, reply, strlen(reply));
+    }
 
     return 0;
 
