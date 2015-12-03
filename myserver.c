@@ -10,12 +10,16 @@
 #include <arpa/inet.h>
 
 int  main () {
-    
+
     struct addrinfo request, *result, *rp;
 
-/*int getaddrinfo(const char * name, const char * service, const struct addrinfo * request, struct addrinfo ** result);*/
+    struct sockaddr_in saddr;
+
+    socklen_t saddrlen;
 
     int check, sd;
+
+    memset(&request, 0, sizeof(struct addrinfo));
 
     request.ai_flags = AI_PASSIVE;
     request.ai_family = AF_INET;
@@ -32,12 +36,12 @@ int  main () {
         fprintf(stderr, "ERROR!\n");
     }
 
-    for (rp = result; rp != NULL; rp = rp->AI_NEXT) {        
+    for (rp = result; rp != NULL; rp = rp->ai_next) {
         sd = socket(request.ai_family, request.ai_socktype, request.ai_protocol);
 
         if (sd == -1)
             continue;
-        
+
         if (bind(sd, rp->ai_addr, rp->ai_addrlen) == 0)
             break;
 
@@ -50,10 +54,10 @@ int  main () {
     }
 
     freeaddrinfo(result);
-    
-    listen(sd, 100);
-    
-    //accept(sd, (struct sockaddr *)&senderaddr, &ic);
+
+    listen(sd, 20);
+
+    accept(sd, (struct sockaddr *)&saddr, &saddrlen);
 
     return 0;
 
