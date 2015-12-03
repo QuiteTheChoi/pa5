@@ -19,19 +19,21 @@
     char * ai_canonname;
     struct addrinfo * ai_next;
 };*/
-
-struct addrinfo * request;
+int  main () {
+struct addrinfo request, *server;
 
 /*int getaddrinfo(const char * name, const char * service, const struct addrinfo * request, struct addrinfo ** result);*/
 
 int check;
-check = getaddrinfo("Hello", NULL, NULL, &request);
+check = getaddrinfo("Hello", "server", &request, &server);
 
-request.ai_flags = request.ai_passive;
-request.ai_family = ai_inet;
-request.ai_socktype = sock_stream;
+request.ai_flags = AI_PASSIVE;
+request.ai_family = AF_INET;
+request.ai_socktype = SOCK_STREAM;
 request.ai_protocol = 0;
 request.ai_addrlen = 0;
 request.ai_addr = NULL;
 request.ai_canonname = NULL;
 request.ai_next = NULL;
+
+}
