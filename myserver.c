@@ -135,12 +135,11 @@ int  main (int argc, char ** argv) {
 
         read(clientsd, buffer, sizeof(buffer)-1);
 
+        printf("%s\n", buffer);
 
         char * reply = "Message received.\n";
 
         write(clientsd, reply, strlen(reply));
-
-        printf("%s\n", buffer);
 
     }
 
