@@ -143,9 +143,9 @@ int  main (int argc, char ** argv) {
 
         //scanf("%s\n", reply);
 
-        //fgets(reply, 500, stdin);
+        fgets(reply, 500, stdin);
 
-        gets(reply);
+        //gets(reply);
 
         write(clientsd, reply, strlen(reply));
 
