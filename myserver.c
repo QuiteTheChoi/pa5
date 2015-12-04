@@ -137,7 +137,15 @@ int  main (int argc, char ** argv) {
 
         printf("%s\n", buffer);
 
-        char * reply = "Message received.\n";
+        //char * reply = "Message received.\n";
+
+        char reply[500];
+
+        //scanf("%s\n", reply);
+
+        //fgets(reply, 500, stdin);
+
+        gets(reply);
 
         write(clientsd, reply, strlen(reply));
 
