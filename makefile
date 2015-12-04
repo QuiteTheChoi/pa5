@@ -1,7 +1,5 @@
-clie:
+net:
 	gcc -g -o clie myclient.c
-
-serv:
 	gcc -g -o serv myserver.c
 
 cav:
@@ -15,4 +13,4 @@ get:
 	git push
 
 clean:
-	rm -rf *.o client server
+	rm -rf *.o *.dSYM clie serv
