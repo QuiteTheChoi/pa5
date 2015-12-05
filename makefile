@@ -1,3 +1,5 @@
+all: net
+
 net:
 	gcc -g -o clie myclient.c
 	gcc -g -o serv myserver.c
