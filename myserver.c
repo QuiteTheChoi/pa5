@@ -291,6 +291,8 @@ int  main (int argc, char ** argv) {
 
                     char * reply = "Message received.\n";
 
+                    printf("HEY\n");
+
         //char reply[500];
 
         //scanf("%s\n", reply);

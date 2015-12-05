@@ -7,49 +7,46 @@
 #include <unistd.h>
 #include <pthread.h>
 
-pthread_mutex_t lock;
+int flag = 0;
+
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void command_input(void * ptr) {
-
-    pthread_mutex_lock(&lock);
 
     char buffer[500];
 
     int check;
     
-    while((check = read((int)ptr, buffer, sizeof(buffer)-1)) != -1) {
-        printf("%s\n", buffer);
-    }
+    int sock_desc = *((int *) ptr);
 
-    pthread_mutex_unlock(&lock);
+    while((check = read(sock_desc, buffer, sizeof(buffer)-1)) != -1) {
+        printf("%s\n", buffer);
+      }
 
 }
 
 void response_output(void * ptr) {
 
-    pthread_mutex_lock(&lock);
-
     char buffer[500];
 
     int check;
-    
-    while((check = read(0, buffer, sizeof(buffer)-1)) != -1) {
-        write((int)ptr, buffer, sizeof(buffer)-1);
-    }
 
-    pthread_mutex_unlock(&lock);
+    int sock_desc = *((int *) ptr);
+   
+    while((check = read(0, buffer, sizeof(buffer)-1)) != -1) {
+        write(sock_desc, buffer, sizeof(buffer)-1);
+    }
 
 }
 
 int main(int argc, char *argv[]) {
     struct addrinfo request;
     struct addrinfo *result, *rp;
-    int sd, s, j;
+    int * sd;
+    int s, j;
     size_t len;
     ssize_t nread;
-    //char buffer[500];
 
-    //if (argc < 3) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s host port msg...\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -70,12 +67,12 @@ int main(int argc, char *argv[]) {
     }
 
     for (rp = result; rp != NULL; rp = rp->ai_next) {
-        sd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sd == -1)
+        *sd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (*sd == -1)
             continue;
-        if (connect(sd, rp->ai_addr, rp->ai_addrlen) != -1)
+        if (connect(*sd, rp->ai_addr, rp->ai_addrlen) != -1)
             break;                  /* Success */
-        close(sd);
+        close(*sd);
     }
     
     if (rp == NULL) {               /* No address succeeded */
@@ -87,10 +84,8 @@ int main(int argc, char *argv[]) {
 
     pthread_t command, response;
 
-    pthread_mutex_init(&lock, NULL);
-
-    pthread_create(&command, NULL, (void *) &command_input, (void *) &sd);
-    pthread_create(&response, NULL, (void *) &response_output, (void *) &sd);
+    pthread_create(&command, NULL, (void *) command_input, (void *) sd);
+    pthread_create(&response, NULL, (void *) response_output, (void *) sd);
 
     pthread_join(command, NULL);
     pthread_join(response, NULL);
