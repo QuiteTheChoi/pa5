@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include <unistd.h>
 #include <errno.h>
-#include <string.h>
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -48,12 +49,19 @@ int openAccount(int sock_desc, char name []) {
 
     }
     
-    if (myBank->numAccounts == 20) {
+    if (strlen(name) == 0) {
+        strcpy(message, "You have not entered a name.\n\n");
+        write(sock_desc, message, sizeof(message)-1);
         pthread_mutex_unlock(&myBank->bankLock);
-        
+        return 1;
+    }
+
+    if (myBank->numAccounts == 20) {        
         strcpy(message, "The maximum number of accounts has been reached. You may not open one at this time.\n\n");
 
         write(sock_desc, message, sizeof(message)-1);
+        
+        pthread_mutex_unlock(&myBank->bankLock);
         
         return 1;
     }
@@ -64,12 +72,13 @@ int openAccount(int sock_desc, char name []) {
 
         for (i = 0; i < myBank->numAccounts; i++) {
             if (strcmp(myBank->accounts[i].name, name) == 0) {
-                pthread_mutex_unlock(&myBank->bankLock);
                 
                 strcpy(message, "There exists an account with the name that you have provided. You may not open one at this time.\n\n");
 
                 write(sock_desc, message, sizeof(message)-1);
-                
+
+                pthread_mutex_unlock(&myBank->bankLock);
+
                 return 1;
             }
         }       
@@ -79,10 +88,11 @@ int openAccount(int sock_desc, char name []) {
         myBank->accounts[i].session = 0;
         pthread_mutex_init(&myBank->accounts[myBank->numAccounts].accountLock, &mutattrAcct);
         myBank->numAccounts++;
-        pthread_mutex_unlock(&myBank->bankLock);
 
         sprintf(message, "Thank you for opening an account with us, %s!\n\n", name);
         write(sock_desc, message, sizeof(message)-1);
+
+        pthread_mutex_unlock(&myBank->bankLock);
 
         return 0;       
     }
@@ -102,6 +112,13 @@ account * startAccount(int sock_desc, char name []) {
         
         sleep(2);
 
+    }
+
+    if (strlen(name) == 0) {
+        strcpy(message, "You have not entered a name.\n\n");
+        write(sock_desc, message, sizeof(message)-1);
+        pthread_mutex_unlock(&myBank->bankLock);
+        return NULL;
     }
     
     int i;
@@ -148,6 +165,21 @@ account * startAccount(int sock_desc, char name []) {
         return &myBank->accounts[i];
     }
 
+}
+
+void credit(account * acc, float val) {
+    float round = roundf(val*100)/100;
+    acc->balance += round;
+}
+
+
+void debit(account * acc, float val) {
+    float round = roundf(val*100)/100;
+
+    if (acc->balance < round)
+        ;
+    else
+        acc->balance -= round;
 }
 
 void client_service(int * sock_desc) {
@@ -220,6 +252,82 @@ void client_service(int * sock_desc) {
             else {
 
                 tempAccount = startAccount(sd, nameOrVal);
+
+            }
+
+        }
+
+        else if (strcmp(command, "credit") == 0) {
+
+            if (strlen(nameOrVal) == 0) {
+                strcpy(response, "You have not entered a value.\n\n");
+                write(sd, response, sizeof(response)-1);
+                continue;
+            }
+
+            if (tempAccount == NULL) {
+
+                strcpy(response, "You are not logged in. You may not add to credit at this time.\n\n");
+
+                write(sd, response, sizeof(response)-1);
+
+            }
+
+            else {
+
+                float val = atof(nameOrVal);
+
+                if (val <= 0) {
+
+                    strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
+
+                    write(sd, response, sizeof(response)-1);
+
+                }
+
+                else {
+
+                    credit(tempAccount, val);
+
+                }
+
+            }
+
+        }
+
+        else if (strcmp(command, "debit") == 0) {
+
+            if (strlen(nameOrVal) == 0) {
+                strcpy(response, "You have not entered a value.\n\n");
+                write(sd, response, sizeof(response)-1);
+                continue;
+            }
+
+            if (tempAccount == NULL) {
+
+                strcpy(response, "You are not logged in. You may not subtract from debit at this time.\n\n");
+
+                write(sd, response, sizeof(response)-1);
+
+            }
+
+            else {
+                
+                float val = atof(nameOrVal);
+
+                if (val <= 0) {
+
+                    strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
+
+                    write(sd, response, sizeof(response)-1);
+
+                }
+
+                else {
+
+                    debit(tempAccount, val);
+
+                }
 
             }
 
