@@ -494,9 +494,9 @@ int main (int argc, char ** argv) {
     action.sa_flags = 0;
     action.sa_handler = signal_handler;
     sigemptyset(&action.sa_mask);
-    sigaction(SIGINT, &action, 0);
-    sigemptyset(&action.sa_mask);
-    signal(SIGCHLD, signal_handler);
+    //sigaction(SIGINT, &action, 0);
+    //sigemptyset(&action.sa_mask);
+    sigaction(SIGCHLD, &action, 0);
 
     /*memset(&request, 0, sizeof(struct addrinfo));
 
