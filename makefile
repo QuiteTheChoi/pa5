@@ -1,8 +1,8 @@
 all: net
 
 net:
-	gcc -o client myclient.c
-	gcc -o server myserver.c
+	gcc -pthread -o client myclient.c
+	gcc -lm -pthread -o server myserver.c
 
 cav:
 	git add -A
