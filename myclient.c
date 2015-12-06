@@ -11,11 +11,9 @@ void command_input(void * ptr) {
 
     char buffer[500];
 
-    int check;
-    
     int sock_desc = *((int *) ptr);
 
-    while((check = read(sock_desc, buffer, sizeof(buffer)-1)) > 0) {
+    while(read(sock_desc, buffer, sizeof(buffer)-1) > 0) {
         printf("%s", buffer);
       }
 
@@ -27,14 +25,12 @@ void response_output(void * ptr) {
 
     char buffer[500];
 
-    int check;
-
     int sock_desc = *((int *) ptr);
 
     printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
 
    
-    while((check = read(0, buffer, sizeof(buffer)-1)) > 0) {
+    while(read(0, buffer, sizeof(buffer)-1) > 0) {
         write(sock_desc, buffer, sizeof(buffer)-1);
         sleep(2);
         printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
@@ -56,6 +52,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s host port msg...\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+    
     memset(&request, 0, sizeof(struct addrinfo));
     request.ai_flags = 0;
     request.ai_family = AF_INET;
@@ -94,31 +91,6 @@ int main(int argc, char *argv[]) {
 
     pthread_join(command, NULL);
     pthread_join(response, NULL);
-    
-    //write(sd, buf, 500);
-
-    
-    //printf("%s.\n", buf);
-
-    /*for (j = 3; j < argc; j++) {
-        len = strlen(argv[j]) + 1;*/
-        /* +1 for terminating null byte */
-        /*if (len + 1 > BUF_SIZE) {
-            fprintf(stderr, "Ignoring long message in argument %d\n", j);
-            continue;
-        }
-
-        if (write(sd, argv[j], len) != len) {
-            fprintf(stderr, "partial/failed write\n");
-            exit(EXIT_FAILURE);
-        }
-        nread = read(sd, buf, BUF_SIZE);
-        if (nread == -1) {
-            perror("read");
-            exit(EXIT_FAILURE);
-        }
-        printf("Received %zd bytes: %s\n", nread, buf);
-    }*/
-
+  
     exit(0);
 }
