@@ -189,59 +189,124 @@ int  main (int argc, char ** argv) {
     }
     
     else if (errno = 0, (shmid = shmget( key, size, 0666 | IPC_CREAT | IPC_EXCL )) != -1) {		// create ok?{
-        errno = 0;
+        
+    errno = 0;
         //p = (char *)shmat( shmid, 0, 0 );
         myBank = (bank *)shmat(shmid, 0, 0);
         //if ( p == (void *)-1 ){
         if (myBank == (void *)-1){
-            printf("shmat() failed  errno :  %s\n", strerror(errno));
+            printf( "shmat() failed  errno :  %s\n", strerror(errno));
             exit(1);
         }
         else{
-            // Successful creation of shared memory segment.  Segment is filled with zeros.
-            // Do some interesting initialization.  Something that takes a while.
+
             myBank->numAccounts = 0;
-            
-            //sleep( 10 );
-            /*printf("Process %d puts message in created shared memory segment attached at address %#x.\n",
-                   getpid(), p + sizeof(int));
-            sprintf( p + sizeof(int), "%s", message );
-            *p = 1;
+            // Acquired shared memory segment.  Has to wait until segment is properly initialized by creator.
+            // Could spin around until initialization complete.
+            /*while ( *p == 0 )
+            {
+                printf( "\x1b[2;32mFound segment waiting for initialization to complete.\x1b[0m\n" );
+            }
+            printf( "Process %d gets message from shared memory segment attached at address %#x.\n", getpid(), p );
+            printf( "\n%s\n", p + sizeof(int) );
             shmdt( p );*/
             //shmdt(myBank);
 
-            while(1){
-                int clientsd;
+            int clientsd;
+            //while(1){
+            while((clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen)) != -1){
+                //int clientsd;
 
-                clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
+                //clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
 
                 int pid = fork();
 
                 if (pid != 0) { /*If this is not the child process*/
 
+        //printf("HEY\n");
                     close(clientsd);
-                
+
                 }
 
                 else {
 
-                    char * message = "Enter \"0\" to open an account.\nEnter \"1\" to start a session.\nEnter \"2\" for credit.\nEnter \"3\" for debit.\nEnter \"4\" for balance.\nEnter \"5\" to finish a session.\nEnter \"6\" to exit.\n";
+                    char response[500];
 
-                    write(clientsd, message, strlen(message));
+                    /*char * message = "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n";
 
-                    read(clientsd, buffer, sizeof(buffer)-1);
+                    write(clientsd, message, strlen(message));*/
 
-                    printf("%s\n", buffer);
+                    int r;
+                    while ((r = read(clientsd, buffer, sizeof(buffer)-1)) > 0) {
 
-                    char * reply = "Message received.\n";
+                        char command[500];
+                        char nameOrVal[100];
+                      
+                        
+                    sscanf(buffer, "%s %[^\n]", command, nameOrVal);
 
-                    write(clientsd, reply, strlen(reply));
-        
+                    /*int eoi = 500-r;
+
+                    buffer[eoi] = '\0';*/
+
+                    //printf("%s\n", buffer);
+
+                    if (strcmp(command, "open") == 0) {
+
+                        //printf("HEY\n");
+                        int result = openAccount(clientsd, nameOrVal);
+                        //printf("Finished Opening Account\n");
+                        /*strcat(response, nameOrVal);
+                        strcat(response, "!\n");
+                        printf("Before write.\n");*/
+                        /*write(clientsd, "Thank you for opening an account with us, ", strlen("Thank you for opening an account with us, "));
+                        write(clientsd, nameOrVal, sizeof(nameOrVal)-1);
+                        write(clientsd, "!", sizeof("!")-1);*/
+
+                        if (result == 0) {
+
+                        sprintf(response, "Thank you for opening an account with us, %s!\n\n", nameOrVal);
+
+                        write(clientsd, response, sizeof(response)-1);
+
+                        }
+
+                        else if (result == 1) {
+
+                            strcpy(response, "The maximum number of accounts has been reached. You may not open one at this time.\n\n");
+
+                            write(clientsd, response, sizeof(response)-1);
+
+                        }
+
+                        else {
+
+                            strcpy(response, "There exists an account with the name that you have given. You may not open one at this time.\n\n");
+
+                            write(clientsd, response, sizeof(response)-1);
+
+                        }
+
+
+                        //printf("After write.\n");
+
+                    }
+
+                    }
+
+
+                    //char * reply = "Message received.\n";
+
+                    //printf("HEY\n");
+
+                    //write(clientsd, reply, strlen(reply));
+
                 }
 
             }
-        
+
         }
+
     
     }
     
