@@ -250,6 +250,7 @@ void printBankInfo() {
                 printf("IN SERVICE\n");
             else
                 ;
+            printf("\n");
         }
 
         pthread_mutex_unlock(&myBank->bankLock);
