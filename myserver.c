@@ -468,7 +468,7 @@ int main (int argc, char ** argv) {
 
                 pthread_create(&bankInfo, NULL, (void *) printBankInfo, NULL);
 
-                pthread_join(bankInfo, NULL);
+                //pthread_join(bankInfo, NULL);
 
                 int pid = fork();
 
@@ -481,7 +481,7 @@ int main (int argc, char ** argv) {
 
                 else {
 
-                    printf("In child process.\n");
+                    //printf("In child process.\n");
 
                     int * sd = (int *)malloc(sizeof(int));
 
