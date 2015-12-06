@@ -113,6 +113,8 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    printf("Connection to bank has been established.\n");
+
     /*if (getaddrinfo(argv[1], "35000", &request, &result) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
         exit(EXIT_FAILURE);

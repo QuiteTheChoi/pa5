@@ -222,6 +222,8 @@ void exitSession(int sock_desc, account * acc) {
 
 void client_service(int * sock_desc) {
 
+    printf("Connection from client has been accepted.\n");
+
     int sd = *(int *)sock_desc;
 
     account * tempAccount = NULL;
@@ -638,53 +640,6 @@ int main (int argc, char ** argv) {
                     *sd = clientsd;
 
                     client_service(sd);
-
-                    /*char response[500];
-
-                    while ((r = read(clientsd, buffer, sizeof(buffer)-1)) > 0) {
-
-                        char command[500];
-                        char nameOrVal[100];
-                      
-                        
-                    sscanf(buffer, "%s %[^\n]", command, nameOrVal);
-
-                    if (strcmp(command, "open") == 0) {
-
-                        int result = openAccount(clientsd, nameOrVal);
-                            if (result == 0) {
-
-                        sprintf(response, "Thank you for opening an account with us, %s!\n\n", nameOrVal);
-
-                        write(clientsd, response, sizeof(response)-1);
-
-                        }
-
-                        else if (result == 1) {
-
-                            strcpy(response, "The maximum number of accounts has been reached. You may not open one at this time.\n\n");
-
-                            write(clientsd, response, sizeof(response)-1);
-
-                        }
-
-                        else {
-
-                            strcpy(response, "There exists an account with the name that you have given. You may not open one at this time.\n\n");
-
-                            write(clientsd, response, sizeof(response)-1);
-
-                        }
-
-                        else if (strcmp(command, "start") == 0) {
-
-                            int result = startAccount(clientsd, nameOrVal);
-
-                        }
-
-                    }
-
-                    }*/
 
                 }
 
