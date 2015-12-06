@@ -167,19 +167,26 @@ account * startAccount(int sock_desc, char name []) {
 
 }
 
-void credit(account * acc, float val) {
+void credit(int sock_desc, account * acc, float val) {
+    char message[500];
     float round = roundf(val*100)/100;
     acc->balance += round;
+    sprintf(message, "You have successfully credited $%.2f to your account.\n\n", val);
+    write(sock_desc, message, sizeof(message)-1);
 }
 
 
-void debit(account * acc, float val) {
+void debit(int sock_desc, account * acc, float val) {
     float round = roundf(val*100)/100;
 
     if (acc->balance < round)
         ;
-    else
+    else {
+        char message[500];
         acc->balance -= round;
+        sprintf(message, "You have successfully debited $%.2f from your account.\n\n", val);
+        write(sock_desc, message, sizeof(message)-1);
+    }
 }
 
 void client_service(int * sock_desc) {
@@ -287,7 +294,7 @@ void client_service(int * sock_desc) {
 
                 else {
 
-                    credit(tempAccount, val);
+                    credit(sd, tempAccount, val);
 
                 }
 
@@ -325,7 +332,7 @@ void client_service(int * sock_desc) {
 
                 else {
 
-                    debit(tempAccount, val);
+                    debit(sd, tempAccount, val);
 
                 }
 
@@ -352,7 +359,7 @@ void printBankInfo() {
     while(1){
         for (int i = 0; i < myBank->numAccounts; i++) {
             printf("Account name: %s\n", myBank->accounts[i].name);
-            printf("Balance: %f\n", myBank->accounts[i].balance);
+            printf("Balance: $%.2f\n", myBank->accounts[i].balance);
             if (myBank->accounts[i].session == 1)
                 printf("IN SERVICE\n");
             else
