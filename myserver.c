@@ -40,7 +40,7 @@ int openAccount(int sock_desc, char name []) {
         
         //char message[500];
        
-        strcpy(message, "The bank is busy due to another client search. Please hold.\n");
+        strcpy(message, "The bank is busy due to another client search. Please hold.\n\n");
 
         write(sock_desc, message, sizeof(message)-1);
         
@@ -96,7 +96,7 @@ account * startAccount(int sock_desc, char name []) {
         
         //char message[500];
        
-        strcpy(message, "The bank is currently locked due to another client search. Please hold.\n");
+        strcpy(message, "The bank is currently locked due to another client search. Please hold.\n\n");
 
         write(sock_desc, message, sizeof(message)-1);
         
@@ -118,7 +118,7 @@ account * startAccount(int sock_desc, char name []) {
 
     if (myBank->numAccounts == i) {
 
-        sprintf(message, "There are no accounts with the name \"%s\" currently open. Please try again later.\n", name);
+        sprintf(message, "There are no accounts with the name \"%s\" currently open. Please try again later.\n\n", name);
 
         write(sock_desc, message, sizeof(message)-1);
        
@@ -132,7 +132,7 @@ account * startAccount(int sock_desc, char name []) {
         
         //char message[500];
        
-        sprintf(message, "%s's account is already in session. Please hold.\n", name);
+        sprintf(message, "%s's account is already in session. Please hold.\n\n", name);
 
         write(sock_desc, message, sizeof(message)-1);
         
@@ -156,14 +156,11 @@ void client_service(int * sock_desc) {
 
     account * tempAccount = NULL;
 
-    //printf("HEY\n");
-
     char buffer[500];
 
     char response[500];
 
     while (read(sd, buffer, sizeof(buffer)-1) > 0) {
-//printf("HEY2\n");
         char command[500];
         char nameOrVal[100];
         
@@ -173,7 +170,7 @@ void client_service(int * sock_desc) {
 
             if (tempAccount != NULL) {
 
-                strcpy(response, "You are already logged in. You may not open an account at this time.\n");
+                strcpy(response, "You are already logged in. You may not open an account at this time.\n\n");
 
                 write(sd, response, sizeof(response)-1);
 
@@ -214,7 +211,7 @@ void client_service(int * sock_desc) {
 
             if (tempAccount != NULL) {
 
-                strcpy(response, "You are already logged in. You may not open an account at this time.\n");
+                strcpy(response, "You are already logged in. You may not open an account at this time.\n\n");
 
                 write(sd, response, sizeof(response)-1);
 
@@ -238,7 +235,7 @@ void printBankInfo() {
         
         //char message[500];
    
-        printf("The bank is currently busy. Please hold.\n");
+        printf("The bank is currently busy. Please hold.\n\n");
 
         sleep(2);
 
@@ -288,7 +285,7 @@ int main (int argc, char ** argv) {
     check = getaddrinfo(NULL, argv[1], &request, &result);
 
     if (check != 0){
-        fprintf(stderr, "ERROR!\n");
+        fprintf(stderr, "Error with getaddrinfo.\n");
     }
 
     for (rp = result; rp != NULL; rp = rp->ai_next) {
@@ -359,7 +356,6 @@ int main (int argc, char ** argv) {
 
                 //clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
                 
-
                 pthread_create(&bankInfo, NULL, (void *) printBankInfo, NULL);
 
                 pthread_join(bankInfo, NULL);
@@ -368,7 +364,6 @@ int main (int argc, char ** argv) {
 
                 if (pid != 0) { /*If this is not the child process*/
 
-        //printf("HEY\n");
                     close(clientsd);
 
                 }
@@ -439,7 +434,7 @@ int main (int argc, char ** argv) {
     
     else if (errno = 0, (shmid = shmget( key, 0, 0666 )) != -1 ){					// find ok?{
         errno = 0;
-        //p = (char *)shmat( shmid, 0, 0 );
+        
         myBank = (bank *)shmat(shmid, 0, 0);
         pthread_mutexattr_init(&mutattrBank);
         pthread_mutexattr_setpshared(&mutattrBank, PTHREAD_PROCESS_SHARED);
@@ -447,7 +442,6 @@ int main (int argc, char ** argv) {
         
         pthread_mutexattr_init(&mutattrAcct);
         pthread_mutexattr_setpshared(&mutattrAcct, PTHREAD_PROCESS_SHARED);
-        //if ( p == (void *)-1 ){
         if (myBank == (void *)-1){
             printf( "shmat() failed  errno :  %s\n", strerror(errno));
             exit(1);
@@ -479,14 +473,11 @@ int main (int argc, char ** argv) {
 
                 if (pid != 0) { /*If this is not the child process*/
 
-        //printf("HEY\n");
                     close(clientsd);
 
                 }
 
                 else {
-
-                    //printf("In child process.\n");
 
                     int * sd = (int *)malloc(sizeof(int));
 
