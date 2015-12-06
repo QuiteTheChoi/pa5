@@ -48,10 +48,12 @@ int openAccount(int sock_desc, char name []) {
             return 1;
         }
 
-        strcpy(message, "The bank is busy due to another client search. Please hold...(%d).\n\n", count);
-        count++;
+        sprintf(message, "The bank is busy due to another client search. Please hold...(%d)\n\n", count);
+
         write(sock_desc, message, sizeof(message)-1);
-        
+
+        count++;
+
         sleep(2);        
 
     }
@@ -301,7 +303,7 @@ void client_service(int * sock_desc) {
                 continue;
             }
 
-            if (tempAccount == NULL) {
+            if (tempAccount == NULL || tempAccount->session == 0) {
 
                 strcpy(response, "You are not logged in. You may not add to credit at this time.\n\n");
 
@@ -313,7 +315,7 @@ void client_service(int * sock_desc) {
 
                 float val = atof(nameOrVal);
 
-                if (val <= 0.0f) {
+                if ((fabs(val - 0.0f) < 0.00001) || (val < 0.0f)) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
@@ -339,7 +341,7 @@ void client_service(int * sock_desc) {
                 continue;
             }
 
-            if (tempAccount == NULL) {
+            if (tempAccount == NULL || tempAccount->session == 0) {
 
                 strcpy(response, "You are not logged in. You may not subtract from debit at this time.\n\n");
 
@@ -351,7 +353,7 @@ void client_service(int * sock_desc) {
                 
                 float val = atof(nameOrVal);
 
-                if (val <= 0.0f) {
+                if ((fabs(val - 0.0f) < 0.00001) || (val < 0.0f)) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
@@ -371,7 +373,7 @@ void client_service(int * sock_desc) {
 
         else if (strcmp(command, "balance") == 0) {
 
-            if (tempAccount == NULL) {
+            if (tempAccount == NULL || tempAccount->session == 0) {
 
                 strcpy(response, "You are not logged in. You do not have access to an account balance at this time.\n\n");
 
