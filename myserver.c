@@ -242,18 +242,20 @@ void printBankInfo() {
 
     }
 
-    for (int i = 0; i < myBank->numAccounts; i++) {
-        printf("Account name: %s\n", myBank->accounts[i].name);
-        printf("Balance: %f\n", myBank->accounts[i].balance);
-        if (myBank->accounts[i].session == 1)
-            printf("IN SERVICE\n");
-        else
-            ;
+    while(1){
+        for (int i = 0; i < myBank->numAccounts; i++) {
+            printf("Account name: %s\n", myBank->accounts[i].name);
+            printf("Balance: %f\n", myBank->accounts[i].balance);
+            if (myBank->accounts[i].session == 1)
+                printf("IN SERVICE\n");
+            else
+                ;
+        }
+
+        pthread_mutex_unlock(&myBank->bankLock);
+
+        sleep(20);
     }
-
-    pthread_mutex_unlock(&myBank->bankLock);
-
-    sleep(20);
 
 }
 
