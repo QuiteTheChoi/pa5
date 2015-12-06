@@ -189,6 +189,28 @@ void debit(int sock_desc, account * acc, float val) {
     }
 }
 
+void balance(int sock_desc, account * acc) {
+    char message[500];
+    sprintf(message, "Your account balance is $%.2f.\n\n", acc->balance);
+    write(sock_desc, message, sizeof(message)-1);
+}
+
+void finishAccount(int sock_desc, account * acc) {
+    char message[500];
+    acc->session = 0;
+    strcpy(message, "You have successfully finished your session.\n\n");
+    write(sock_desc, message, sizeof(message)-1);
+    pthread_mutex_unlock(&acc->accountLock);
+}
+
+void exitSession(int sock_desc, account * acc) {
+    char message[500];
+    acc->session = 0;
+    strcpy(message, "You have exited the bank.\n\n");
+    write(sock_desc, message, sizeof(message)-1);
+    pthread_mutex_unlock(&acc->accountLock);
+}
+
 void client_service(int * sock_desc) {
 
     int sd = *(int *)sock_desc;
@@ -339,6 +361,68 @@ void client_service(int * sock_desc) {
             }
 
         }
+
+        else if (strcmp(command, "balance")) {
+
+            if (tempAccount == NULL) {
+
+                strcpy(response, "You are not logged in. You do not have access to an account balance at this time.\n\n");
+
+                write(sd, response, sizeof(response)-1);
+
+            }
+
+            else {
+
+                balance(sd, tempAccount);
+
+            }
+
+        }
+
+        else if (strcmp(command, "finish")) {
+
+            if (tempAccount == NULL) {
+
+                strcpy(response, "You are not logged in. You cannot finish a session at this time.\n\n");
+
+                write(sd, response, sizeof(response)-1);
+
+            }
+
+            else {
+
+                finishAccount(sd, tempAccount);
+
+            }
+
+        }
+
+        else if (strcmp(command, "exit")) {
+            
+            if (tempAccount == NULL) {
+
+                strcpy(response, "You have exited the bank.\n\n");
+
+                write(sd, response, sizeof(response)-1);
+
+                close(sd);
+
+                break;
+
+            }
+
+            else {
+
+                exitSession(sd, tempAccount);
+
+                close(sd);
+
+                break;
+
+            }
+
+        }
     
     }
 
@@ -374,11 +458,21 @@ void printBankInfo() {
 
 }
 
+static void signal_handler(int signo) {
+
+    if (signo == SIGCHLD) {
+
+        while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {
+
+        }
+    }
+}
+
 int main (int argc, char ** argv) {
 
     char buffer[500];
 
-    struct addrinfo request, *result, *rp;
+    //struct addrinfo request, *result, *rp;
 
     struct sockaddr_in saddr;
 
@@ -386,30 +480,63 @@ int main (int argc, char ** argv) {
 
     int check, sd;
 
-    memset(&request, 0, sizeof(struct addrinfo));
+    struct sigaction action;
 
-    request.ai_flags = AI_PASSIVE;
+    action.sa_flags = 0;
+    action.sa_handler = signal_handler;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGINT, &action, 0);
+    sigemptyset(&action.sa_mask);
+    signal(SIGCHLD, signal_handler);
+
+    //memset(&request, 0, sizeof(struct addrinfo));
+
+    /*request.ai_flags = AI_PASSIVE;
     request.ai_family = AF_INET;
     request.ai_socktype = SOCK_STREAM;
     request.ai_protocol = 0;
     request.ai_addrlen = 0;
     request.ai_addr = NULL;
     request.ai_canonname = NULL;
-    request.ai_next = NULL;
+    request.ai_next = NULL;*/
 
-    check = getaddrinfo(NULL, argv[1], &request, &result);
+    if ((sd = socket(AF_INET, SOCK_STREAM, 0) < 0)) {
+        fprintf(stderr, "Socket error.\n");
+        exit(1);
+    }
+
+    int portnum = 40000;
+
+    bzero(&saddr, sizeof(saddr));
+    saddr.sin_family = AF_INET;
+    saddr.sin_port = htons(portnum);
+    saddr.sin_addr.s_addr = INADDR_ANY;
+
+    /*check = getaddrinfo(NULL, request.ai_port, &request, &result);
 
     if (check != 0){
         fprintf(stderr, "Error with getaddrinfo.\n");
-    }
+    }*/
 
-    for (rp = result; rp != NULL; rp = rp->ai_next) {
-        sd = socket(request.ai_family, request.ai_socktype, request.ai_protocol);
+    /*for (rp = result; rp != NULL; rp = rp->ai_next) {
+        sd = socket(request.ai_family, request.ai_socktype, request.ai_protocol);*
 
         if (sd == -1)
-            continue;
+            continue;*/
 
-        if (bind(sd, rp->ai_addr, rp->ai_addrlen) == 0)
+    if (bind(sd, (struct sockaddr *)&saddr, sizeof(saddr)) != 0) {
+        fprintf(stderr, "socket--bind error.\n");
+        exit(1);
+    }
+
+        /*---Make it a "listening socket"---*/
+    if (listen(sd, 20) != 0) {
+        fprintf(stderr, "socket--listen error.\n");
+        exit(1);
+    }
+
+
+    /*if (bind(sd, rp->ai_addr, rp->ai_addrlen) == 0)
             break;
 
         close(sd);
@@ -418,11 +545,11 @@ int main (int argc, char ** argv) {
     if (rp == NULL) {
         fprintf(stderr, "ERROR: Could not bind.\n");
         return 1;
-    }
+    }*/
 
-    freeaddrinfo(result);
+    //freeaddrinfo(result);
 
-    listen(sd, 20);
+    //listen(sd, 20);
 
     //shmem_create();
 

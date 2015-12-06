@@ -42,19 +42,22 @@ void response_output(void * ptr) {
 }
 
 int main(int argc, char *argv[]) {
-    struct addrinfo request;
-    struct addrinfo *result, *rp;
+    /*struct addrinfo request;
+    struct addrinfo *result, *rp;*/
     int * sd;
     int s, j;
     size_t len;
     ssize_t nread;
+
+    struct sockaddr_in dest;
+    socklen_t saddrlen;
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s host port msg...\n", argv[0]);
         exit(EXIT_FAILURE);
     }
     
-    memset(&request, 0, sizeof(struct addrinfo));
+    /*memset(&request, 0, sizeof(struct addrinfo));
     request.ai_flags = 0;
     request.ai_family = AF_INET;
     request.ai_socktype = SOCK_STREAM;
@@ -62,9 +65,27 @@ int main(int argc, char *argv[]) {
     request.ai_addrlen = 0;
     request.ai_addr = NULL;
     request.ai_canonname = NULL;
-    request.ai_next = NULL;
+    request.ai_next = NULL;*/
 
-    if (getaddrinfo(argv[1], argv[2], &request, &result) != 0) {
+    int sockConnection;
+
+    if ((sockConnection = socket(AF_INET, SOCK_STREAM, 0) < 0)) {
+        fprintf(stderr, "Socket error.\n");
+        exit(1);
+    }
+
+    bzero(&dest, sizeof(dest));
+    dest.sin_family = AF_INET;
+    dest.sin_port = htons(7770);
+    dest.sin_addr.s_addr = INADDR_ANY;
+
+        /*---Connect to server---*/
+    if (connect(*sd, (struct sockaddr*)&dest, sizeof(dest)) != 0 ) {
+        fprintf(stderr, "Connection error.\n");
+        exit(1);
+    }
+
+    /*if (getaddrinfo(argv[1], argv[2], &request, &result) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
         exit(EXIT_FAILURE);
     }
@@ -74,16 +95,16 @@ int main(int argc, char *argv[]) {
         if (*sd == -1)
             continue;
         if (connect(*sd, rp->ai_addr, rp->ai_addrlen) != -1)
-            break;                  /* Success */
-        close(*sd);
-    }
+            break;*/                  /* Success */
+     //   close(*sd);
+   // }
     
-    if (rp == NULL) {               /* No address succeeded */
-        fprintf(stderr, "Could not connect\n");
+    //if (rp == NULL) {               /* No address succeeded */
+      /*  fprintf(stderr, "Could not connect\n");
         exit(1);
     }
     
-    freeaddrinfo(result);           /* No longer needed */
+    freeaddrinfo(result); */          /* No longer needed */
 
     pthread_t command, response;
 
