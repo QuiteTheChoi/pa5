@@ -7,6 +7,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/ipc.h>
@@ -231,7 +232,7 @@ void client_service(int * sock_desc) {
 
             if (tempAccount != NULL) {
 
-                strcpy(response, "You are already logged in. You may not open an account at this time.\n\n");
+                strcpy(response, "You are already logged in. You may not start another account.\n\n");
 
                 write(sd, response, sizeof(response)-1);
 
@@ -272,7 +273,7 @@ void client_service(int * sock_desc) {
 
             if (tempAccount != NULL) {
 
-                strcpy(response, "You are already logged in. You may not open an account at this time.\n\n");
+                strcpy(response, "You are already logged in. You may not start an account.\n\n");
 
                 write(sd, response, sizeof(response)-1);
 
@@ -306,7 +307,7 @@ void client_service(int * sock_desc) {
 
                 float val = atof(nameOrVal);
 
-                if (val <= 0) {
+                if (val <= 0.0) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
@@ -344,7 +345,7 @@ void client_service(int * sock_desc) {
                 
                 float val = atof(nameOrVal);
 
-                if (val <= 0) {
+                if (val <= 0.0) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
@@ -362,7 +363,7 @@ void client_service(int * sock_desc) {
 
         }
 
-        else if (strcmp(command, "balance")) {
+        else if (strcmp(command, "balance") == 0) {
 
             if (tempAccount == NULL) {
 
@@ -380,7 +381,7 @@ void client_service(int * sock_desc) {
 
         }
 
-        else if (strcmp(command, "finish")) {
+        else if (strcmp(command, "finish") == 0) {
 
             if (tempAccount == NULL) {
 
@@ -398,7 +399,7 @@ void client_service(int * sock_desc) {
 
         }
 
-        else if (strcmp(command, "exit")) {
+        else if (strcmp(command, "exit") == 0) {
             
             if (tempAccount == NULL) {
 
@@ -421,6 +422,14 @@ void client_service(int * sock_desc) {
                 break;
 
             }
+
+        }
+
+        else {
+
+            strcpy(response, "The command that you have entered is not valid. Please try again.\n\n");
+
+                write(sd, response, sizeof(response)-1);
 
         }
     
@@ -489,9 +498,9 @@ int main (int argc, char ** argv) {
     sigemptyset(&action.sa_mask);
     signal(SIGCHLD, signal_handler);
 
-    //memset(&request, 0, sizeof(struct addrinfo));
+    /*memset(&request, 0, sizeof(struct addrinfo));
 
-    /*request.ai_flags = AI_PASSIVE;
+    request.ai_flags = AI_PASSIVE;
     request.ai_family = AF_INET;
     request.ai_socktype = SOCK_STREAM;
     request.ai_protocol = 0;
@@ -500,37 +509,38 @@ int main (int argc, char ** argv) {
     request.ai_canonname = NULL;
     request.ai_next = NULL;*/
 
-    if ((sd = socket(AF_INET, SOCK_STREAM, 0) < 0)) {
+    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         fprintf(stderr, "Socket error.\n");
         exit(1);
     }
 
-    int portnum = 40000;
+    int portnum = 7779;
 
-    bzero(&saddr, sizeof(saddr));
+    bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(portnum);
     saddr.sin_addr.s_addr = INADDR_ANY;
 
-    /*check = getaddrinfo(NULL, request.ai_port, &request, &result);
+    //check = getaddrinfo(NULL, "35000", &request, &result);
 
-    if (check != 0){
+    /*if (check != 0){
         fprintf(stderr, "Error with getaddrinfo.\n");
     }*/
 
     /*for (rp = result; rp != NULL; rp = rp->ai_next) {
-        sd = socket(request.ai_family, request.ai_socktype, request.ai_protocol);*
+        sd = socket(request.ai_family, request.ai_socktype, request.ai_protocol);
 
         if (sd == -1)
             continue;*/
 
-    if (bind(sd, (struct sockaddr *)&saddr, sizeof(saddr)) != 0) {
+    if (bind(sd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
+        printf("%s\n", strerror(errno));
         fprintf(stderr, "socket--bind error.\n");
         exit(1);
     }
 
         /*---Make it a "listening socket"---*/
-    if (listen(sd, 20) != 0) {
+    if (listen(sd, 20) < 0) {
         fprintf(stderr, "socket--listen error.\n");
         exit(1);
     }
@@ -545,11 +555,11 @@ int main (int argc, char ** argv) {
     if (rp == NULL) {
         fprintf(stderr, "ERROR: Could not bind.\n");
         return 1;
-    }*/
+    }
 
-    //freeaddrinfo(result);
+    freeaddrinfo(result);
 
-    //listen(sd, 20);
+    listen(sd, 20);*/
 
     //shmem_create();
 
@@ -600,7 +610,7 @@ int main (int argc, char ** argv) {
                 
                 pthread_create(&bankInfo, NULL, (void *) printBankInfo, NULL);
 
-                pthread_join(bankInfo, NULL);
+                //pthread_join(bankInfo, NULL);
 
                 int pid = fork();
 
