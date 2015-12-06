@@ -2,7 +2,7 @@ all: net
 
 net:
 	gcc -pthread -o client myclient.c
-	gcc -lm -pthread -o server myserver.c
+	gcc -pthread -o server myserver.c -lm
 
 cav:
 	git add -A
