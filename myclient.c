@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    int portnum = 7779;
+    int portnum = 7775;
 
     bzero((char *)&dest, sizeof(dest));
     dest.sin_family = AF_INET;

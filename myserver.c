@@ -307,7 +307,7 @@ void client_service(int * sock_desc) {
 
                 float val = atof(nameOrVal);
 
-                if (val <= 0.0) {
+                if (val <= 0.0f) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
@@ -345,7 +345,7 @@ void client_service(int * sock_desc) {
                 
                 float val = atof(nameOrVal);
 
-                if (val <= 0.0) {
+                if (val <= 0.0f) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
@@ -514,7 +514,7 @@ int main (int argc, char ** argv) {
         exit(1);
     }
 
-    int portnum = 7779;
+    int portnum = 7775;
 
     bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;
