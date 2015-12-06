@@ -421,6 +421,9 @@ void client_service(int * sock_desc) {
             write(sd, response, sizeof(response)-1);
 
         }
+
+        memset(command, '\0', 500);
+        memset(nameOrVal, '\0', 100);
     
     }
 
