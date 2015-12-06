@@ -40,7 +40,7 @@ int openAccount(int sock_desc, char name []) {
         
         //char message[500];
        
-        strcpy(message, "The bank due to another client search. Please hold.\n");
+        strcpy(message, "The bank is busy due to another client search. Please hold.\n");
 
         write(sock_desc, message, sizeof(message)-1);
         
@@ -232,11 +232,28 @@ void client_service(int * sock_desc) {
 
 void printBankInfo() {
 
-    for (int i = 0; i < myBank->numAccounts; i++) {
+    while (pthread_mutex_trylock(&myBank->bankLock) != 0) {
+        
+        //char message[500];
+   
+        printf("The bank is currently busy. Please hold.\n");
 
-
+        sleep(2);
 
     }
+
+    for (int i = 0; i < myBank->numAccounts; i++) {
+        printf("Account name: %s\n", myBank->accounts[i].name);
+        printf("Balance: %f\n", myBank->accounts[i].balance);
+        if (myBank->accounts[i].session == 1)
+            printf("IN SERVICE\n");
+        else
+            ;
+    }
+
+    pthread_mutex_unlock(&myBank->bankLock);
+
+    sleep(20);
 
 }
 
