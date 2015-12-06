@@ -141,9 +141,11 @@ account * startAccount(int sock_desc, char name []) {
     }
 
         myBank->accounts[i].session = 1;
-        
-        return &myBank->accounts[i];
 
+        strcpy(message, "You have successfully started a session.\n\n");
+        write(sock_desc, message, sizeof(message)-1);
+
+        return &myBank->accounts[i];
     }
 
 }
