@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     socklen_t saddrlen;
 
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s host port msg...\n", argv[0]);
+        fprintf(stderr, "Usage: %s host\n", argv[0]);
         exit(EXIT_FAILURE);
     }
     
