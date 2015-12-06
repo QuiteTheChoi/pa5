@@ -1,7 +1,7 @@
 all: net
 
 net:
-	gcc -pthread -o client myclient.c
+	gcc -pthread -g -o client myclient.c
 	gcc -lm -pthread -o server myserver.c
 
 cav:

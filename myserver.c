@@ -458,7 +458,10 @@ void printBankInfo() {
     }
 
     while(1){
-        for (int i = 0; i < myBank->numAccounts; i++) {
+
+        int i;
+
+        for (i = 0; i < myBank->numAccounts; i++) {
             printf("Account name: %s\n", myBank->accounts[i].name);
             printf("Balance: $%.2f\n", myBank->accounts[i].balance);
             if (myBank->accounts[i].session == 1)
@@ -522,7 +525,7 @@ int main (int argc, char ** argv) {
         exit(1);
     }
 
-    int portnum = 7775;
+    int portnum = 7770;
 
     bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;

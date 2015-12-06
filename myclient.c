@@ -54,7 +54,7 @@ void response_output(void * ptr) {
 int main(int argc, char *argv[]) {
     struct addrinfo request;
     struct addrinfo *result, *rp;
-    int * sd;
+    int  sd;
     int s, j;
     size_t len;
     ssize_t nread;
@@ -80,19 +80,20 @@ int main(int argc, char *argv[]) {
 
     //int sockConnection;
 
-    if ((*sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         fprintf(stderr, "Socket error.\n");
         exit(1);
     }
 
+    printf("Before name.\n");
     server = gethostbyname(argv[1]);
-    
+    printf("After name.\n");
     if (server == NULL) {
         fprintf(stderr, "The host that you have given does not exist.\n");
         exit(1);
     }
 
-    int portnum = 7775;
+    int portnum = 7770;
 
     bzero((char *)&dest, sizeof(dest));
     dest.sin_family = AF_INET;
@@ -106,10 +107,10 @@ int main(int argc, char *argv[]) {
     }*/
 
         /*---Connect to server---*/
-    if (connect(*sd, (struct sockaddr*)&dest, sizeof(dest)) != 0 ) {
+    if (connect(sd, (struct sockaddr*)&dest, sizeof(dest)) != 0 ) {
         printf("%s\n", strerror(errno));
         fprintf(stderr, "Connection error.\n");
-        close(*sd);
+        close(sd);
         exit(1);
     }
 
@@ -136,8 +137,8 @@ int main(int argc, char *argv[]) {
 
     pthread_t command, response;
 
-    pthread_create(&command, NULL, (void *) command_input, (void *) sd);
-    pthread_create(&response, NULL, (void *) response_output, (void *) sd);
+    pthread_create(&command, NULL, (void *) command_input, (void *) &sd);
+    pthread_create(&response, NULL, (void *) response_output, (void *) &sd);
 
     pthread_join(command, NULL);
     pthread_join(response, NULL);
