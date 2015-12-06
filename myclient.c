@@ -7,10 +7,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-int flag = 0;
-
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-
 void command_input(void * ptr) {
 
     char buffer[500];
@@ -19,9 +15,11 @@ void command_input(void * ptr) {
     
     int sock_desc = *((int *) ptr);
 
-    while((check = read(sock_desc, buffer, sizeof(buffer)-1)) != -1) {
-        printf("%s\n", buffer);
+    while((check = read(sock_desc, buffer, sizeof(buffer)-1)) > 0) {
+        printf("%s", buffer);
       }
+
+    exit(0);
 
 }
 
@@ -32,10 +30,17 @@ void response_output(void * ptr) {
     int check;
 
     int sock_desc = *((int *) ptr);
+
+    printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+
    
-    while((check = read(0, buffer, sizeof(buffer)-1)) != -1) {
+    while((check = read(0, buffer, sizeof(buffer)-1)) > 0) {
         write(sock_desc, buffer, sizeof(buffer)-1);
+        sleep(2);
+        printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
     }
+
+    exit(0);
 
 }
 

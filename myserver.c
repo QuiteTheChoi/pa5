@@ -30,21 +30,35 @@ bank * myBank;
 //struct bank myBank = myBank;
 //myBank->numAccounts = 0;
 
-void openAccount(int sock_desc, char name[100]) {
-
+int openAccount(int sock_desc, char name []) {
     if (myBank->numAccounts == 20) {
-        fprintf(stderr, "The maximum number of accounts has been reached. You may not open one at this time.");
+        return 1;
     }
     
     else {
+
+       /* char * response = "Please enter a name for your account.\n";
+
+        write(sock_desc, response, strlen(response));
+
+        int r = read(sock_desc, name, sizeof(name)-1);
+
+        int eoi = 500-r;
+
+        name[eoi] = '\0';*/
+
         for (int i = 0; i < myBank->numAccounts; i++) {
-            if (strcmp(myBank->accounts[i].name,name) == 0) {
-                fprintf(stderr, "There exists an account with the name that you have given. You may not open one at this time.");
+            if (strcmp(myBank->accounts[i].name, name) == 0) {
+                return 2;
             }
-        }
+        }       
         
         strcpy(myBank->accounts[myBank->numAccounts].name, name);
-        myBank->accounts[myBank->numAccounts].session = 1;
+        //printf("HEY\n");
+        myBank->numAccounts++;
+        return 0;
+        //printf("HEY\n");
+        
     }
 }
 
@@ -188,10 +202,6 @@ int  main (int argc, char ** argv) {
             // Do some interesting initialization.  Something that takes a while.
             myBank->numAccounts = 0;
             
-            for (int i = 0; i < 20; i++) {
-                myBank->accounts[i].session = 0;
-            }
-            
             //sleep( 10 );
             /*printf("Process %d puts message in created shared memory segment attached at address %#x.\n",
                    getpid(), p + sizeof(int));
@@ -225,22 +235,14 @@ int  main (int argc, char ** argv) {
 
                     char * reply = "Message received.\n";
 
-        //char reply[500];
-
-        //scanf("%s\n", reply);
-
-        //fgets(reply, 500, stdin);
-
-        //gets(reply);
-
                     write(clientsd, reply, strlen(reply));
         
                 }
 
-    }
-
-
+            }
+        
         }
+    
     }
     
     else if (errno = 0, (shmid = shmget( key, 0, 0666 )) != -1 ){					// find ok?{
@@ -264,11 +266,12 @@ int  main (int argc, char ** argv) {
             shmdt( p );*/
             //shmdt(myBank);
 
-            
-            while(1){
-                int clientsd;
+            int clientsd;
+            //while(1){
+            while((clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen)) != -1){
+                //int clientsd;
 
-                clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
+                //clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
 
                 int pid = fork();
 
@@ -281,42 +284,90 @@ int  main (int argc, char ** argv) {
 
                 else {
 
-                    char * message = "Enter \"0\" to open an account.\nEnter \"1\" to start a session.\nEnter \"2\" for credit.\nEnter \"3\" for debit.\nEnter \"4\" for balance.\nEnter \"5\" to finish a session.\nEnter \"6\" to exit.\n";
+                    char response[500];
 
-                    write(clientsd, message, strlen(message));
+                    /*char * message = "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n";
 
+                    write(clientsd, message, strlen(message));*/
 
-                    read(clientsd, buffer, sizeof(buffer)-1);
+                    int r;
+                    while ((r = read(clientsd, buffer, sizeof(buffer)-1)) > 0) {
+
+                        char command[500];
+                        char nameOrVal[100];
+                      
+                        
+                    sscanf(buffer, "%s %[^\n]", command, nameOrVal);
+
+                    /*int eoi = 500-r;
+
+                    buffer[eoi] = '\0';*/
+
                     //printf("%s\n", buffer);
 
-                    char * reply = "Message received.\n";
+                    if (strcmp(command, "open") == 0) {
 
-                    printf("HEY\n");
+                        //printf("HEY\n");
+                        int result = openAccount(clientsd, nameOrVal);
+                        //printf("Finished Opening Account\n");
+                        /*strcat(response, nameOrVal);
+                        strcat(response, "!\n");
+                        printf("Before write.\n");*/
+                        /*write(clientsd, "Thank you for opening an account with us, ", strlen("Thank you for opening an account with us, "));
+                        write(clientsd, nameOrVal, sizeof(nameOrVal)-1);
+                        write(clientsd, "!", sizeof("!")-1);*/
 
-        //char reply[500];
+                        if (result == 0) {
 
-        //scanf("%s\n", reply);
+                        sprintf(response, "Thank you for opening an account with us, %s!\n\n", nameOrVal);
 
-        //fgets(reply, 500, stdin);
+                        write(clientsd, response, sizeof(response)-1);
 
-        //gets(reply);
+                        }
 
-                    write(clientsd, reply, strlen(reply));
-        
+                        else if (result == 1) {
+
+                            strcpy(response, "The maximum number of accounts has been reached. You may not open one at this time.\n\n");
+
+                            write(clientsd, response, sizeof(response)-1);
+
+                        }
+
+                        else {
+
+                            strcpy(response, "There exists an account with the name that you have given. You may not open one at this time.\n\n");
+
+                            write(clientsd, response, sizeof(response)-1);
+
+                        }
+
+
+                        //printf("After write.\n");
+
+                    }
+
+                    }
+
+
+                    //char * reply = "Message received.\n";
+
+                    //printf("HEY\n");
+
+                    //write(clientsd, reply, strlen(reply));
+
                 }
 
-    }
-
+            }
 
         }
+
     }
-    
+
     else{											// no create, no find{
         printf( "shmget() failed  errno :  %s\n", strerror( errno ) );
         exit(1);
     }
-    
-    
+
     return 0;
 
 }
