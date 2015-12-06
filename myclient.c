@@ -85,9 +85,8 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    printf("Before name.\n");
     server = gethostbyname(argv[1]);
-    printf("After name.\n");
+    
     if (server == NULL) {
         fprintf(stderr, "The host that you have given does not exist.\n");
         exit(1);
