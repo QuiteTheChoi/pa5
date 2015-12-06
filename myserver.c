@@ -11,6 +11,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <pthread.h>
+#include <signal.h>
 
 typedef struct Account{
     pthread_mutex_t accountLock;
@@ -27,6 +28,9 @@ typedef struct Bank{
 
 bank * myBank;
 
+pthread_mutexattr_t mutattrBank;
+pthread_mutexattr_t mutattrAcct;
+
 //struct bank myBank = myBank;
 //myBank->numAccounts = 0;
 
@@ -36,11 +40,11 @@ int openAccount(int sock_desc, char name []) {
         
         char message[500];
        
-        sprintf(message, "Attempting to open %s's account. Please wait.\n", name);
+        strcpy(message, "Attempting to open another account. Please wait.\n");
 
         write(sock_desc, message, sizeof(message)-1);
         
-        sleep(3);
+        sleep(2);
 
     }
     
@@ -51,16 +55,6 @@ int openAccount(int sock_desc, char name []) {
     
     else {
 
-       /* char * response = "Please enter a name for your account.\n";
-
-        write(sock_desc, response, strlen(response));
-
-        int r = read(sock_desc, name, sizeof(name)-1);
-
-        int eoi = 500-r;
-
-        name[eoi] = '\0';*/
-
         for (int i = 0; i < myBank->numAccounts; i++) {
             if (strcmp(myBank->accounts[i].name, name) == 0) {
                 pthread_mutex_unlock(&myBank->bankLock);
@@ -69,13 +63,30 @@ int openAccount(int sock_desc, char name []) {
         }       
         
         strcpy(myBank->accounts[myBank->numAccounts].name, name);
-        //printf("HEY\n");
+        pthread_mutex_init(&myBank->accounts[myBank->numAccounts].accountLock, &mutattrAcct);
         myBank->numAccounts++;
         pthread_mutex_unlock(&myBank->bankLock);
         return 0;
-        //printf("HEY\n");
         
     }
+}
+
+int startAccount(int sock_desc, char name []) {
+
+    while (pthread_mutex_trylock(&myBank->accounts[myBank->numAccounts].accountLock) != 0) {
+        
+        char message[500];
+       
+        sprintf(message, "Attempting to start %s's account. Please wait.\n", name);
+
+        write(sock_desc, message, sizeof(message)-1);
+        
+        sleep(2);
+
+    }
+
+return 0;
+
 }
 
 /*void shmem_create() {
@@ -141,7 +152,63 @@ int openAccount(int sock_desc, char name []) {
     printf("normal end.\n");
 }*/
 
-int  main (int argc, char ** argv) {
+void client_service(int * sock_desc) {
+
+    int sd = *(int *)sock_desc;
+
+    printf("HEY\n");
+
+    char buffer[500];
+
+    char response[500];
+
+    while (read(sd, buffer, sizeof(buffer)-1) > 0) {
+printf("HEY2\n");
+        char command[500];
+        char nameOrVal[100];
+        
+        sscanf(buffer, "%s %[^\n]", command, nameOrVal);
+
+        if (strcmp(command, "open") == 0) {
+
+            int result = openAccount(sd, nameOrVal);
+            
+            if (result == 0) {
+
+                sprintf(response, "Thank you for opening an account with us, %s!\n\n", nameOrVal);
+
+                write(sd, response, sizeof(response)-1);
+
+            }
+
+            else if (result == 1) {
+
+                strcpy(response, "The maximum number of accounts has been reached. You may not open one at this time.\n\n");
+
+                write(sd, response, sizeof(response)-1);
+
+            }
+            
+            else {
+
+                strcpy(response, "There exists an account with the name that you have given. You may not open one at this time.\n\n");
+
+                write(sd, response, sizeof(response)-1);
+            }
+
+        }
+        
+        /*else if (strcmp(command, "start") == 0) {
+
+          int result = startAccount(clientsd, nameOrVal);
+
+          }*/
+    
+    }
+
+}
+
+int main (int argc, char ** argv) {
 
     char buffer[500];
 
@@ -209,6 +276,9 @@ int  main (int argc, char ** argv) {
     errno = 0;
         //p = (char *)shmat( shmid, 0, 0 );
         myBank = (bank *)shmat(shmid, 0, 0);
+        pthread_mutexattr_init(&mutattrBank);
+        pthread_mutexattr_setpshared(&mutattrBank, PTHREAD_PROCESS_SHARED);
+        pthread_mutex_init(&myBank->bankLock, &mutattrBank);
         //if ( p == (void *)-1 ){
         if (myBank == (void *)-1){
             printf( "shmat() failed  errno :  %s\n", strerror(errno));
@@ -246,13 +316,14 @@ int  main (int argc, char ** argv) {
 
                 else {
 
-                    char response[500];
+                    int * sd = (int *)malloc(sizeof(int));
 
-                    /*char * message = "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n";
+                    *sd = clientsd;
 
-                    write(clientsd, message, strlen(message));*/
+                    client_service(sd);
 
-                    int r;
+                    /*char response[500];
+
                     while ((r = read(clientsd, buffer, sizeof(buffer)-1)) > 0) {
 
                         char command[500];
@@ -261,25 +332,10 @@ int  main (int argc, char ** argv) {
                         
                     sscanf(buffer, "%s %[^\n]", command, nameOrVal);
 
-                    /*int eoi = 500-r;
-
-                    buffer[eoi] = '\0';*/
-
-                    //printf("%s\n", buffer);
-
                     if (strcmp(command, "open") == 0) {
 
-                        //printf("HEY\n");
                         int result = openAccount(clientsd, nameOrVal);
-                        //printf("Finished Opening Account\n");
-                        /*strcat(response, nameOrVal);
-                        strcat(response, "!\n");
-                        printf("Before write.\n");*/
-                        /*write(clientsd, "Thank you for opening an account with us, ", strlen("Thank you for opening an account with us, "));
-                        write(clientsd, nameOrVal, sizeof(nameOrVal)-1);
-                        write(clientsd, "!", sizeof("!")-1);*/
-
-                        if (result == 0) {
+                            if (result == 0) {
 
                         sprintf(response, "Thank you for opening an account with us, %s!\n\n", nameOrVal);
 
@@ -303,19 +359,15 @@ int  main (int argc, char ** argv) {
 
                         }
 
+                        else if (strcmp(command, "start") == 0) {
 
-                        //printf("After write.\n");
+                            int result = startAccount(clientsd, nameOrVal);
+
+                        }
 
                     }
 
-                    }
-
-
-                    //char * reply = "Message received.\n";
-
-                    //printf("HEY\n");
-
-                    //write(clientsd, reply, strlen(reply));
+                    }*/
 
                 }
 
@@ -330,6 +382,12 @@ int  main (int argc, char ** argv) {
         errno = 0;
         //p = (char *)shmat( shmid, 0, 0 );
         myBank = (bank *)shmat(shmid, 0, 0);
+        pthread_mutexattr_init(&mutattrBank);
+        pthread_mutexattr_setpshared(&mutattrBank, PTHREAD_PROCESS_SHARED);
+        pthread_mutex_init(&myBank->bankLock, &mutattrBank);
+        
+        pthread_mutexattr_init(&mutattrAcct);
+        pthread_mutexattr_setpshared(&mutattrAcct, PTHREAD_PROCESS_SHARED);
         //if ( p == (void *)-1 ){
         if (myBank == (void *)-1){
             printf( "shmat() failed  errno :  %s\n", strerror(errno));
@@ -365,12 +423,16 @@ int  main (int argc, char ** argv) {
 
                 else {
 
-                    char response[500];
+                    printf("In child process.\n");
 
-                    /*char * message = "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n";
+                    int * sd = (int *)malloc(sizeof(int));
 
-                    write(clientsd, message, strlen(message));*/
+                    *sd = clientsd;
 
+                    client_service(sd);
+
+                    /*char response[500];
+                    
                     int r;
                     while ((r = read(clientsd, buffer, sizeof(buffer)-1)) > 0) {
 
@@ -380,23 +442,9 @@ int  main (int argc, char ** argv) {
                         
                     sscanf(buffer, "%s %[^\n]", command, nameOrVal);
 
-                    /*int eoi = 500-r;
-
-                    buffer[eoi] = '\0';*/
-
-                    //printf("%s\n", buffer);
-
                     if (strcmp(command, "open") == 0) {
 
-                        //printf("HEY\n");
                         int result = openAccount(clientsd, nameOrVal);
-                        //printf("Finished Opening Account\n");
-                        /*strcat(response, nameOrVal);
-                        strcat(response, "!\n");
-                        printf("Before write.\n");*/
-                        /*write(clientsd, "Thank you for opening an account with us, ", strlen("Thank you for opening an account with us, "));
-                        write(clientsd, nameOrVal, sizeof(nameOrVal)-1);
-                        write(clientsd, "!", sizeof("!")-1);*/
 
                         if (result == 0) {
 
@@ -423,18 +471,10 @@ int  main (int argc, char ** argv) {
                         }
 
 
-                        //printf("After write.\n");
-
                     }
 
-                    }
+                    }*/
 
-
-                    //char * reply = "Message received.\n";
-
-                    //printf("HEY\n");
-
-                    //write(clientsd, reply, strlen(reply));
 
                 }
 
