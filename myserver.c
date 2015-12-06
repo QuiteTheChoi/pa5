@@ -31,7 +31,21 @@ bank * myBank;
 //myBank->numAccounts = 0;
 
 int openAccount(int sock_desc, char name []) {
+    
+    while (pthread_mutex_trylock(&myBank->bankLock) != 0) {
+        
+        char message[500];
+       
+        sprintf(message, "Attempting to open %s's account. Please wait.\n", name);
+
+        write(sock_desc, message, sizeof(message)-1);
+        
+        sleep(3);
+
+    }
+    
     if (myBank->numAccounts == 20) {
+        pthread_mutex_unlock(&myBank->bankLock);
         return 1;
     }
     
@@ -49,6 +63,7 @@ int openAccount(int sock_desc, char name []) {
 
         for (int i = 0; i < myBank->numAccounts; i++) {
             if (strcmp(myBank->accounts[i].name, name) == 0) {
+                pthread_mutex_unlock(&myBank->bankLock);
                 return 2;
             }
         }       
@@ -56,6 +71,7 @@ int openAccount(int sock_desc, char name []) {
         strcpy(myBank->accounts[myBank->numAccounts].name, name);
         //printf("HEY\n");
         myBank->numAccounts++;
+        pthread_mutex_unlock(&myBank->bankLock);
         return 0;
         //printf("HEY\n");
         
