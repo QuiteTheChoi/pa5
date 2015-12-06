@@ -35,16 +35,22 @@ pthread_t bankInfo;
 int openAccount(int sock_desc, char name []) {
     
     char message[500];
-
+    
+    int count = 1;
     while (pthread_mutex_trylock(&myBank->bankLock) != 0) {
         
         //char message[500];
-       
-        strcpy(message, "The bank is busy due to another client search. Please hold.\n\n");
+        
+        if (count > 8) {
+            strcpy(message, "The bank is currently overloaded with clients. Please try again at a later time.\n\n");
+            return 1;
+        }
 
+        strcpy(message, "The bank is busy due to another client search. Please hold...(%d).\n\n", count);
+        count++;
         write(sock_desc, message, sizeof(message)-1);
         
-        sleep(2);
+        sleep(2);        
 
     }
     
