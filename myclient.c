@@ -21,7 +21,7 @@ void command_input(void * ptr) {
     }
 
     if (check == 0) {
-        printf("Cannot write to server. Connection closed. Exiting program.\n");
+        printf("Cannot read from server. Connection closed. Exiting program.\n");
         exit(0);
     }
 
