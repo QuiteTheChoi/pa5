@@ -254,29 +254,6 @@ void client_service(int * sock_desc) {
 
             }
             
-            /*if (result == 0) {
-
-                sprintf(response, "Thank you for opening an account with us, %s!\n\n", nameOrVal);
-
-                write(sd, response, sizeof(response)-1);
-
-            }
-
-            else if (result == 1) {
-
-                strcpy(response, "The maximum number of accounts has been reached. You may not open one at this time.\n\n");
-
-                write(sd, response, sizeof(response)-1);
-
-            }
-            
-            else {
-
-                strcpy(response, "There exists an account with the name that you have given. You may not open one at this time.\n\n");
-
-                write(sd, response, sizeof(response)-1);
-            }*/
-
         }
         
         else if (strcmp(command, "start") == 0) {
@@ -419,6 +396,8 @@ void client_service(int * sock_desc) {
 
                 close(sd);
 
+                printf("A client has disconnected from the server.\n");
+
                 break;
 
             }
@@ -439,7 +418,7 @@ void client_service(int * sock_desc) {
 
             strcpy(response, "The command that you have entered is not valid. Please try again.\n\n");
 
-                write(sd, response, sizeof(response)-1);
+            write(sd, response, sizeof(response)-1);
 
         }
     

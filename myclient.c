@@ -21,7 +21,7 @@ void command_input(void * ptr) {
     }
 
     if (check == 0) {
-        printf("Cannot read from server. Connection closed. Exiting program.\n");
+        printf("Cannot read from server. Connection closed.\n");
         exit(0);
     }
 
@@ -42,7 +42,7 @@ void response_output(void * ptr) {
 
        int n= write(sock_desc, buffer, sizeof(buffer)-1);
        if(n ==0){
-        printf("Cannot write to server. Connection closed. Exiting program.\n");
+        printf("Cannot write to server. Connection closed.\n");
         exit(0);
        }
        sleep(2);
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    printf("Connection to bank has been established.\n");
+    printf("Connection to server has been established.\n");
 
     /*if (getaddrinfo(argv[1], "35000", &request, &result) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
