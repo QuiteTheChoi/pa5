@@ -224,6 +224,7 @@ void exitSession(int sock_desc, account * acc) {
     acc->session = 0;
     strcpy(message, "You have exited the bank.\n\n");
     write(sock_desc, message, sizeof(message)-1);
+    printf("A client has disconnected from the server.\n");
     pthread_mutex_unlock(&acc->accountLock);
 }
 
@@ -405,13 +406,12 @@ void client_service(int * sock_desc) {
             
             if (tempAccount == NULL) {
 
-                strcpy(response, "You have exited the bank.\n\n");
-
+                strcpy(response, "You have exited the bank. Have a great day!\n\n");
                 write(sd, response, sizeof(response)-1);
 
-                close(sd);
-
                 printf("A client has disconnected from the server.\n");
+
+                close(sd);
 
                 break;
 

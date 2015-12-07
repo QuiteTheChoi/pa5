@@ -7,6 +7,25 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
+#include <signal.h>
+
+int sd;
+
+static void signal_handler(int signo){
+
+    if (signo == SIGINT) {
+
+        char message[100] = "exit";
+        
+        write(sd, message, sizeof(message)-1);
+
+        printf("You have disconnected from the server. Connection closed.\n"); 
+
+        exit(0);
+
+    }
+
+}
 
 void command_input(void * ptr) {
 
@@ -59,7 +78,7 @@ void response_output(void * ptr) {
 int main(int argc, char *argv[]) {
     struct addrinfo request;
     struct addrinfo *result, *rp;
-    int  sd;
+    //int  sd;
     int s, j;
     size_t len;
     ssize_t nread;
@@ -67,6 +86,13 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in dest;
     struct hostent * server;
     socklen_t saddrlen;
+
+    struct sigaction action;
+
+    action.sa_flags = 0;
+    action.sa_handler = signal_handler;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGINT, &action, 0);
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s host\n", argv[0]);
@@ -89,6 +115,8 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Socket error.\n");
         exit(1);
     }
+
+    //globalSD = sd;
 
     server = gethostbyname(argv[1]);
     
