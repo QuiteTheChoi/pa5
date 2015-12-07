@@ -18,6 +18,7 @@ void command_input(void * ptr) {
 
     while((check = read(sock_desc, buffer, sizeof(buffer)-1)) > 0) {
         printf("%s", buffer);
+        memset(buffer, '\0', sizeof(buffer));
     }
 
     if (check == 0) {
@@ -40,13 +41,17 @@ void response_output(void * ptr) {
     while((check = read(0, buffer, sizeof(buffer)-1)) > 0) {
         /*printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");*/
 
-       int n= write(sock_desc, buffer, sizeof(buffer)-1);
-       if(n ==0){
-        printf("Cannot write to server. Connection closed.\n");
-        exit(0);
-       }
-       sleep(2);
-       printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+        //buffer[check] = '\0';
+        int n = write(sock_desc, buffer, sizeof(buffer)-1);
+        if(n ==0){
+            printf("Cannot write to server. Connection closed.\n");
+            exit(0);
+        }
+        sleep(2);
+        printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+        
+        memset(buffer, '\0', sizeof(buffer));
+
     }
 
 }
