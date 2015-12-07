@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    int portnum = 7769;
+    int portnum = 7776;
 
     bzero((char *)&dest, sizeof(dest));
     dest.sin_family = AF_INET;

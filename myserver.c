@@ -38,6 +38,8 @@ pthread_mutexattr_t mutattrBank;
 pthread_mutexattr_t mutattrAcct;
 pthread_t bankInfo;
 
+void exitSession(int, account *);
+
 /*static void sigchld_handler(int signo) {
     
     if (signo == SIGCHLD) {
@@ -80,6 +82,7 @@ int openAccount(int sock_desc, char name []) {
         if (count > 8) {
             strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
             write(sock_desc, message, sizeof(message)-1);
+            exitSession(sockd, tempAccount);
             return 1;
         }
 
@@ -154,6 +157,7 @@ account * startAccount(int sock_desc, char name []) {
         if (count > 8) {
             strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
             write(sock_desc, message, sizeof(message)-1);
+            exitSession(sockd, tempAccount);
             return NULL;
         }
        
@@ -207,6 +211,7 @@ account * startAccount(int sock_desc, char name []) {
             if (count > 8) {
                 sprintf(message, "%s is currently in session. Please try again later.\n\n", name);
                 write(sock_desc, message, sizeof(message)-1);
+                exitSession(sockd, tempAccount);
                 return NULL;
             }      
         
@@ -525,6 +530,7 @@ void printBankInfo(void * ptr) {
         if (count > 8) {
             strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
             write(sock_desc, message, sizeof(message)-1);
+            exitSession(sockd, tempAccount);
             return;
         }
         
@@ -607,7 +613,7 @@ int main (int argc, char ** argv) {
         exit(1);
     }
 
-    int portnum = 7769;
+    int portnum = 7776;
 
     bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;
