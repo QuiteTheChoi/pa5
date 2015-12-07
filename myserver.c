@@ -422,8 +422,8 @@ void client_service(int * sock_desc) {
 
         }
 
-        memset(command, '\0', 500);
-        memset(nameOrVal, '\0', 100);
+        memset(&command, '\0', sizeof(command));
+        memset(&nameOrVal, '\0', sizeof(command));
     
     }
 
