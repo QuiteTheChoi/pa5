@@ -39,12 +39,14 @@ int openAccount(int sock_desc, char name []) {
     char message[500];
     
     int count = 1;
+
     while (pthread_mutex_trylock(&myBank->bankLock) != 0) {
         
         //char message[500];
         
         if (count > 8) {
-            strcpy(message, "The bank is currently overloaded with clients. Please try again at a later time.\n\n");
+            strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
+            write(sock_desc, message, sizeof(message)-1);
             return 1;
         }
 
@@ -111,14 +113,23 @@ account * startAccount(int sock_desc, char name []) {
 
     char message[500];
 
+    int count = 1;       
+
     while (pthread_mutex_trylock(&myBank->bankLock) != 0) {
         
         //char message[500];
+        if (count > 8) {
+            strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
+            write(sock_desc, message, sizeof(message)-1);
+            return NULL;
+        }
        
-        strcpy(message, "The bank is currently locked due to another client search. Please hold.\n\n");
+        sprintf(message, "The bank is currently locked due to another client search. Please hold...(%d)\n\n", count);
 
         write(sock_desc, message, sizeof(message)-1);
-        
+    
+        count++;
+
         sleep(2);
 
     }
@@ -154,15 +165,25 @@ account * startAccount(int sock_desc, char name []) {
 
     else {
 
+        count = 1;
+
         while (pthread_mutex_trylock(&myBank->accounts[i].accountLock) != 0) {
         
         //char message[500];
-       
-        sprintf(message, "%s's account is already in session. Please hold.\n\n", name);
 
-        write(sock_desc, message, sizeof(message)-1);
+            if (count > 8) {
+                sprintf(message, "%s is currently in session. Please try again later.\n\n", name);
+                write(sock_desc, message, sizeof(message)-1);
+                return NULL;
+            }      
         
-        sleep(2);
+            sprintf(message, "%s's account is currently in session. Please hold...(%d)\n\n", name, count);
+
+            write(sock_desc, message, sizeof(message)-1);
+        
+            count++;
+
+            sleep(2);
 
     }
 
@@ -446,13 +467,25 @@ void client_service(int * sock_desc) {
 
 }
 
-void printBankInfo() {
+void printBankInfo(void * ptr) {
+
+    int sock_desc = *((int *) ptr);
+
+    int count = 1;
 
     while (pthread_mutex_trylock(&myBank->bankLock) != 0) {
         
-        //char message[500];
-   
-        printf("The bank is currently busy. Please hold.\n\n");
+        char message[500];
+
+        if (count > 8) {
+            strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
+            write(sock_desc, message, sizeof(message)-1);
+            return;
+        }
+        
+        sprintf(message, "The bank is busy processing client information. Please hold...(%d)\n\n", count);
+
+        count++;
 
         sleep(2);
 
@@ -620,7 +653,7 @@ int main (int argc, char ** argv) {
 
                 //clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
                 
-                pthread_create(&bankInfo, NULL, (void *) printBankInfo, NULL);
+                pthread_create(&bankInfo, NULL, (void *) printBankInfo, (void *) &sd);
 
                 //pthread_join(bankInfo, NULL);
 
@@ -682,7 +715,7 @@ int main (int argc, char ** argv) {
 
                 //clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
 
-                pthread_create(&bankInfo, NULL, (void *) printBankInfo, NULL);
+                pthread_create(&bankInfo, NULL, (void *) printBankInfo, (void *) &sd);
 
                 //pthread_join(bankInfo, NULL);
 
