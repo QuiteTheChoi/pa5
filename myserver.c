@@ -38,26 +38,30 @@ pthread_mutexattr_t mutattrBank;
 pthread_mutexattr_t mutattrAcct;
 pthread_t bankInfo;
 
-static void sigchld_handler(int signo) {
+/*static void sigchld_handler(int signo) {
     
     if (signo == SIGCHLD) {
 
         while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {
-
+            printf("I'M WAITING.\n");
         }
     }
 
-}
+}*/
 
 static void sigint_handler(int signo) {
 
     if (signo == SIGINT) {
 
-        if (tempAccount != NULL && tempAccount->session != 0) {
+        /*if (tempAccount != NULL && tempAccount->session != 0) {
             tempAccount->session = 0;
             pthread_mutex_unlock(&tempAccount->accountLock);
+            printf("The bank has disconnected from the client(s).\n");
             exit(0);
-        }
+        }*/
+
+        printf("The bank has disconnected from the client(s).\n");
+        exit(0);
 
     }
 
@@ -575,7 +579,7 @@ int main (int argc, char ** argv) {
 
     int check, sd;
 
-    signal(SIGCHLD, sigchld_handler);
+    //signal(SIGCHLD, sigchld_handler);
 
     //struct sigaction action;
 
@@ -603,7 +607,7 @@ int main (int argc, char ** argv) {
         exit(1);
     }
 
-    int portnum = 7772;
+    int portnum = 7769;
 
     bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;
