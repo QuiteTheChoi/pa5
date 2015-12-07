@@ -178,21 +178,28 @@ account * startAccount(int sock_desc, char name []) {
 
 void credit(int sock_desc, account * acc, float val) {
     char message[500];
-    float round = roundf(val*100)/100;
-    acc->balance += round;
+    //float round = roundf(val*100)/100;
+    //acc->balance += round;
+    acc->balance += val;
     sprintf(message, "You have successfully credited $%.2f to your account.\n\n", val);
     write(sock_desc, message, sizeof(message)-1);
 }
 
 
 void debit(int sock_desc, account * acc, float val) {
-    float round = roundf(val*100)/100;
+    //float round = roundf(val*100)/100;
 
-    if (acc->balance < round)
-        ;
+    //if (acc->balance < round) {
+    if (acc->balance < val) {
+        char message[500];
+        strcpy(message, "The amount that you have entered is greater than your balance. You may not debit from your account at this time.\n\n");
+        write(sock_desc, message, sizeof(message)-1);
+    }
+
     else {
         char message[500];
-        acc->balance -= round;
+        //acc->balance -= round;
+        acc->balance -= val;
         sprintf(message, "You have successfully debited $%.2f from your account.\n\n", val);
         write(sock_desc, message, sizeof(message)-1);
     }
@@ -294,8 +301,11 @@ void client_service(int * sock_desc) {
 
                 float val = atof(nameOrVal);
 
-                if ((fabs(val - 0.0f) < 0.00001) || (val < 0.0f)) {
+                float round = roundf(val*100)/100;
 
+                //if ((fabs(val - 0.0f) < 0.00001) || (val < 0.0f)) {
+                if ((fabs(round - 0.0f) < 0.00001) || (round < 0.0f)) {
+                    
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
                     write(sd, response, sizeof(response)-1);
@@ -304,7 +314,8 @@ void client_service(int * sock_desc) {
 
                 else {
 
-                    credit(sd, tempAccount, val);
+                    //credit(sd, tempAccount, val);
+                    credit(sd, tempAccount, round);
 
                 }
 
@@ -332,7 +343,10 @@ void client_service(int * sock_desc) {
                 
                 float val = atof(nameOrVal);
 
-                if ((fabs(val - 0.0f) < 0.00001) || (val < 0.0f)) {
+                float round = roundf(val*100)/100;
+
+                //if ((fabs(val - 0.0f) < 0.00001) || (val < 0.0f)) {
+                if ((fabs(round - 0.0f) < 0.00001) || (round < 0.0f)) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
@@ -342,7 +356,8 @@ void client_service(int * sock_desc) {
 
                 else {
 
-                    debit(sd, tempAccount, val);
+                    //debit(sd, tempAccount, val);
+                    debit(sd, tempAccount, round);
 
                 }
 
