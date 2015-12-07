@@ -51,10 +51,11 @@ static void sigchld_handler(int signo) {
 
 static void sigint_handler(int signo) {
 
+    if (signo == SIGINT) {
 
 
 
-
+    }
 
 }
 
@@ -292,26 +293,14 @@ void client_service(int * sock_desc) {
         sscanf(buffer, "%s %[^\n]", command, nameOrVal);
 
         if (strcmp(command, "open") == 0) {
-
-            if (tempAccount != NULL) {
-
-                strcpy(response, "You are already logged in. You may not start another account.\n\n");
-
-                write(sockd, response, sizeof(response)-1);
-
-            }
-
-            else {
             
-                openAccount(sockd, nameOrVal);
-
-            }
+            openAccount(sockd, nameOrVal);
             
         }
         
         else if (strcmp(command, "start") == 0) {
 
-            if (tempAccount != NULL) {
+            if (tempAccount != NULL && tempAccount->session != 0) {
 
                 strcpy(response, "You are already logged in. You may not start an account.\n\n");
 
@@ -421,6 +410,14 @@ void client_service(int * sock_desc) {
 
             }
 
+            else if (*nameOrVal != '\0') {
+                
+                strcpy(response, "The command that you have entered is not valid. Please try again.\n\n");
+
+                write(sockd, response, sizeof(response)-1);
+
+            }
+
             else {
 
                 balance(sockd, tempAccount);
@@ -434,6 +431,14 @@ void client_service(int * sock_desc) {
             if (tempAccount == NULL) {
 
                 strcpy(response, "You are not logged in. You cannot finish a session at this time.\n\n");
+
+                write(sockd, response, sizeof(response)-1);
+
+            }
+
+            else if (*nameOrVal != '\0') {
+                
+                strcpy(response, "The command that you have entered is not valid. Please try again.\n\n");
 
                 write(sockd, response, sizeof(response)-1);
 
@@ -459,6 +464,14 @@ void client_service(int * sock_desc) {
                 close(sockd);
 
                 break;
+
+            }
+
+            else if (*nameOrVal != '\0') {
+                
+                strcpy(response, "The command that you have entered is not valid. Please try again.\n\n");
+
+                write(sockd, response, sizeof(response)-1);
 
             }
 
@@ -586,7 +599,7 @@ int main (int argc, char ** argv) {
         exit(1);
     }
 
-    int portnum = 7771;
+    int portnum = 7773;
 
     bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;

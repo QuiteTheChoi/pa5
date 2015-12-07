@@ -41,7 +41,7 @@ void command_input(void * ptr) {
     }
 
     if (check == 0) {
-        printf("Cannot read from server. Connection closed.\n");
+        printf("Cannot read from the server. Connection closed.\n");
         exit(0);
     }
 
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    int portnum = 7771;
+    int portnum = 7773;
 
     bzero((char *)&dest, sizeof(dest));
     dest.sin_family = AF_INET;
