@@ -30,9 +30,33 @@ typedef struct Bank{
 
 bank * myBank;
 
+account * tempAccount = NULL;
+
+int sockd;
+
 pthread_mutexattr_t mutattrBank;
 pthread_mutexattr_t mutattrAcct;
 pthread_t bankInfo;
+
+static void sigchld_handler(int signo) {
+    
+    if (signo == SIGCHLD) {
+
+        while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {
+
+        }
+    }
+
+}
+
+static void sigint_handler(int signo) {
+
+
+
+
+
+
+}
 
 int openAccount(int sock_desc, char name []) {
     
@@ -253,15 +277,15 @@ void client_service(int * sock_desc) {
 
     printf("Connection from client has been accepted.\n");
 
-    int sd = *(int *)sock_desc;
+    sockd = *(int *)sock_desc;
 
-    account * tempAccount = NULL;
+    //account * tempAccount = NULL;
 
     char buffer[500];
 
     char response[500];
 
-    while (read(sd, buffer, sizeof(buffer)-1) > 0) {
+    while (read(sockd, buffer, sizeof(buffer)-1) > 0) {
         char command[500];
         char nameOrVal[100];
         
@@ -273,13 +297,13 @@ void client_service(int * sock_desc) {
 
                 strcpy(response, "You are already logged in. You may not start another account.\n\n");
 
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
 
             }
 
             else {
             
-                openAccount(sd, nameOrVal);
+                openAccount(sockd, nameOrVal);
 
             }
             
@@ -291,13 +315,13 @@ void client_service(int * sock_desc) {
 
                 strcpy(response, "You are already logged in. You may not start an account.\n\n");
 
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
 
             }
 
             else {
 
-                tempAccount = startAccount(sd, nameOrVal);
+                tempAccount = startAccount(sockd, nameOrVal);
 
             }
 
@@ -307,7 +331,7 @@ void client_service(int * sock_desc) {
 
             if (strlen(nameOrVal) == 0) {
                 strcpy(response, "You have not entered a value.\n\n");
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
                 continue;
             }
 
@@ -315,7 +339,7 @@ void client_service(int * sock_desc) {
 
                 strcpy(response, "You are not logged in. You may not add to credit at this time.\n\n");
 
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
 
             }
 
@@ -330,14 +354,14 @@ void client_service(int * sock_desc) {
                     
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
-                    write(sd, response, sizeof(response)-1);
+                    write(sockd, response, sizeof(response)-1);
 
                 }
 
                 else {
 
-                    //credit(sd, tempAccount, val);
-                    credit(sd, tempAccount, round);
+                    //credit(sockd, tempAccount, val);
+                    credit(sockd, tempAccount, round);
 
                 }
 
@@ -349,7 +373,7 @@ void client_service(int * sock_desc) {
 
             if (strlen(nameOrVal) == 0) {
                 strcpy(response, "You have not entered a value.\n\n");
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
                 continue;
             }
 
@@ -357,7 +381,7 @@ void client_service(int * sock_desc) {
 
                 strcpy(response, "You are not logged in. You may not subtract from debit at this time.\n\n");
 
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
 
             }
 
@@ -372,14 +396,14 @@ void client_service(int * sock_desc) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
 
-                    write(sd, response, sizeof(response)-1);
+                    write(sockd, response, sizeof(response)-1);
 
                 }
 
                 else {
 
-                    //debit(sd, tempAccount, val);
-                    debit(sd, tempAccount, round);
+                    //debit(sockd, tempAccount, val);
+                    debit(sockd, tempAccount, round);
 
                 }
 
@@ -393,13 +417,13 @@ void client_service(int * sock_desc) {
 
                 strcpy(response, "You are not logged in. You do not have access to an account balance at this time.\n\n");
 
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
 
             }
 
             else {
 
-                balance(sd, tempAccount);
+                balance(sockd, tempAccount);
 
             }
 
@@ -411,13 +435,13 @@ void client_service(int * sock_desc) {
 
                 strcpy(response, "You are not logged in. You cannot finish a session at this time.\n\n");
 
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
 
             }
 
             else {
 
-                finishAccount(sd, tempAccount);
+                finishAccount(sockd, tempAccount);
 
             }
 
@@ -428,11 +452,11 @@ void client_service(int * sock_desc) {
             if (tempAccount == NULL) {
 
                 strcpy(response, "You have exited the bank. Have a great day!\n\n");
-                write(sd, response, sizeof(response)-1);
+                write(sockd, response, sizeof(response)-1);
 
                 printf("A client has disconnected from the server.\n");
 
-                close(sd);
+                close(sockd);
 
                 break;
 
@@ -440,9 +464,9 @@ void client_service(int * sock_desc) {
 
             else {
 
-                exitSession(sd, tempAccount);
+                exitSession(sockd, tempAccount);
 
-                close(sd);
+                close(sockd);
 
                 break;
 
@@ -454,7 +478,7 @@ void client_service(int * sock_desc) {
 
             strcpy(response, "The command that you have entered is not valid. Please try again.\n\n");
 
-            write(sd, response, sizeof(response)-1);
+            write(sockd, response, sizeof(response)-1);
 
         }
 
@@ -512,7 +536,7 @@ void printBankInfo(void * ptr) {
 
 }
 
-static void signal_handler(int signo) {
+/*static void signal_handler(int signo) {
 
     if (signo == SIGCHLD) {
 
@@ -520,7 +544,7 @@ static void signal_handler(int signo) {
 
         }
     }
-}
+}*/
 
 int main (int argc, char ** argv) {
 
@@ -534,14 +558,17 @@ int main (int argc, char ** argv) {
 
     int check, sd;
 
-    struct sigaction action;
+    signal(SIGCHLD, sigchld_handler);
 
-    action.sa_flags = 0;
+    //struct sigaction action;
+
+    /*action.sa_flags = 0;
     action.sa_handler = signal_handler;
     sigemptyset(&action.sa_mask);
-    //sigaction(SIGINT, &action, 0);
-    //sigemptyset(&action.sa_mask);
-    sigaction(SIGCHLD, &action, 0);
+    sigaction(SIGINT, &action, 0);
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGCHLD, &action, 0);*/
+
 
     /*memset(&request, 0, sizeof(struct addrinfo));
 
@@ -671,6 +698,8 @@ int main (int argc, char ** argv) {
 
                     *sd = clientsd;
 
+                    signal(SIGINT, sigint_handler);
+
                     client_service(sd);
 
                 }
@@ -735,51 +764,7 @@ int main (int argc, char ** argv) {
 
                     client_service(sd);
 
-                    /*char response[500];
-                    
-                    int r;
-                    while ((r = read(clientsd, buffer, sizeof(buffer)-1)) > 0) {
-
-                        char command[500];
-                        char nameOrVal[100];
-                      
-                        
-                    sscanf(buffer, "%s %[^\n]", command, nameOrVal);
-
-                    if (strcmp(command, "open") == 0) {
-
-                        int result = openAccount(clientsd, nameOrVal);
-
-                        if (result == 0) {
-
-                        sprintf(response, "Thank you for opening an account with us, %s!\n\n", nameOrVal);
-
-                        write(clientsd, response, sizeof(response)-1);
-
-                        }
-
-                        else if (result == 1) {
-
-                            strcpy(response, "The maximum number of accounts has been reached. You may not open one at this time.\n\n");
-
-                            write(clientsd, response, sizeof(response)-1);
-
-                        }
-
-                        else {
-
-                            strcpy(response, "There exists an account with the name that you have given. You may not open one at this time.\n\n");
-
-                            write(clientsd, response, sizeof(response)-1);
-
-                        }
-
-
-                    }
-
-                    }*/
-
-
+ 
                 }
 
             }
