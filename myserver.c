@@ -53,8 +53,11 @@ static void sigint_handler(int signo) {
 
     if (signo == SIGINT) {
 
-        if (tempAccount != NULL && tempAccount->session != 0)
+        if (tempAccount != NULL && tempAccount->session != 0) {
+            tempAccount->session = 0;
             pthread_mutex_unlock(&tempAccount->accountLock);
+            exit(0);
+        }
 
     }
 
