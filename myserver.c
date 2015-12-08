@@ -408,7 +408,7 @@ void client_service(int * sock_desc) {
 
         else if (strcmp(command, "finish") == 0) {
 
-            if (tempAccount == NULL) {
+            if (tempAccount == NULL || tempAccount->session == 0) {
 
                 strcpy(response, "You are not logged in. You cannot finish a session at this time.\n\n");
 
