@@ -265,8 +265,20 @@ void client_service(int * sock_desc) {
         sscanf(buffer, "%s %[^\n]", command, nameOrVal);
 
         if (strcmp(command, "open") == 0) {
-            
-            openAccount(sockd, nameOrVal);
+           
+            if (tempAccount->session != 0) {
+
+                strcpy(response, "You are already logged in. You may not open an account.\n\n");
+
+                write(sockd, response, sizeof(response)-1);
+
+            }
+
+            else {
+                
+                openAccount(sockd, nameOrVal);
+
+            }
             
         }
         
