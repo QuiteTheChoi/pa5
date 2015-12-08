@@ -57,11 +57,75 @@ void response_output(void * ptr) {
 
     printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
 
-    while((check = read(0, buffer, sizeof(buffer)-1)) > 0) {
-        /*printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");*/
+        while((check = read(0, buffer, sizeof(buffer)-1)) > 0) {
+                    /*printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");*/
 
-        //buffer[check] = '\0';
+                    //buffer[check] = '\0';
+
+
+            int n = write(sock_desc, buffer, sizeof(buffer)-1);
+            if(n ==0){
+                printf("Cannot write to server. Connection closed.\n");
+                exit(0);
+            }
+            sleep(2);
+            
+            printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+            
+            memset(buffer, '\0', sizeof(buffer));
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*int count = 0;
+
+    printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+
+    while((check = read(0, buffer, sizeof(buffer)-1)) > 0) {
+        
+        if (count > 0) {
+            int n = write(sock_desc, buffer, sizeof(buffer)-1);
+
+            if(n ==0){
+                printf("Cannot write to server. Connection closed.\n");
+                exit(0);
+            }
+            sleep(2);
+            printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+            memset(buffer, '\0', sizeof(buffer));
+            continue;
+        }
+        
         int n = write(sock_desc, buffer, sizeof(buffer)-1);
+
         if(n ==0){
             printf("Cannot write to server. Connection closed.\n");
             exit(0);
@@ -71,7 +135,9 @@ void response_output(void * ptr) {
         
         memset(buffer, '\0', sizeof(buffer));
 
-    }
+        count++;
+
+    }*/
 
 }
 
@@ -125,7 +191,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    int portnum = 7776;
+    int portnum = 7770;
 
     bzero((char *)&dest, sizeof(dest));
     dest.sin_family = AF_INET;

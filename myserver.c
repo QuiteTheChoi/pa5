@@ -51,9 +51,9 @@ void exitSession(int, account *);
 
 }*/
 
-static void sigint_handler(int signo) {
+/*static void sigint_handler(int signo) {
 
-    if (signo == SIGINT) {
+    if (signo == SIGINT) {*/
 
         /*if (tempAccount != NULL && tempAccount->session != 0) {
             tempAccount->session = 0;
@@ -62,12 +62,12 @@ static void sigint_handler(int signo) {
             exit(0);
         }*/
 
-        printf("The bank has disconnected from the client(s).\n");
+        /*printf("The bank has disconnected from a client.\n");
         exit(0);
 
     }
 
-}
+}*/
 
 int openAccount(int sock_desc, char name []) {
     
@@ -82,7 +82,9 @@ int openAccount(int sock_desc, char name []) {
         if (count > 8) {
             strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
             write(sock_desc, message, sizeof(message)-1);
-            exitSession(sockd, tempAccount);
+            strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+            write(sock_desc, message, sizeof(message)-1);
+            //exitSession(sockd, tempAccount);
             return 1;
         }
 
@@ -155,9 +157,11 @@ account * startAccount(int sock_desc, char name []) {
         
         //char message[500];
         if (count > 8) {
-            strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
+            strcpy(message, "The bank is currently busy. Please try again later.\n\n");
             write(sock_desc, message, sizeof(message)-1);
-            exitSession(sockd, tempAccount);
+            strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+            write(sock_desc, message, sizeof(message)-1);
+            //exitSession(sockd, tempAccount);
             return NULL;
         }
        
@@ -211,7 +215,9 @@ account * startAccount(int sock_desc, char name []) {
             if (count > 8) {
                 sprintf(message, "%s is currently in session. Please try again later.\n\n", name);
                 write(sock_desc, message, sizeof(message)-1);
-                exitSession(sockd, tempAccount);
+                strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+                write(sock_desc, message, sizeof(message)-1);
+                //exitSession(sockd, tempAccount);
                 return NULL;
             }      
         
@@ -289,7 +295,7 @@ void exitSession(int sock_desc, account * acc) {
 
 void client_service(int * sock_desc) {
 
-    printf("Connection from client has been accepted.\n");
+    //printf("Connection from a client has been accepted.\n");
 
     sockd = *(int *)sock_desc;
 
@@ -530,7 +536,9 @@ void printBankInfo(void * ptr) {
         if (count > 8) {
             strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
             write(sock_desc, message, sizeof(message)-1);
-            exitSession(sockd, tempAccount);
+            strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
+            write(sock_desc, message, sizeof(message)-1);
+            //exitSession(sockd, tempAccount);
             return;
         }
         
@@ -613,7 +621,7 @@ int main (int argc, char ** argv) {
         exit(1);
     }
 
-    int portnum = 7776;
+    int portnum = 7770;
 
     bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;
@@ -713,9 +721,10 @@ int main (int argc, char ** argv) {
 
                 int pid = fork();
 
-                if (pid != 0) { /*If this is not the child process*/
-
-                    close(clientsd);
+                if (pid != 0) { /*If this is the parent process*/
+                    
+                    shmctl(shmid, IPC_RMID, NULL); /*Removes the shared memory segment*/
+                    close(clientsd); /*Closes the socket descriptor*/
 
                 }
 
@@ -725,7 +734,9 @@ int main (int argc, char ** argv) {
 
                     *sd = clientsd;
 
-                    signal(SIGINT, sigint_handler);
+                    //signal(SIGINT, sigint_handler);
+
+                    printf("Connection from a client has been accepted.\n");
 
                     client_service(sd);
 
@@ -777,9 +788,10 @@ int main (int argc, char ** argv) {
 
                 int pid = fork();
 
-                if (pid != 0) { /*If this is not the child process*/
+                if (pid != 0) { /*If this is the parent process*/
 
-                    close(clientsd);
+                    shmctl(shmid, IPC_RMID, NULL); /*Removes the shared memory segment*/
+                    close(clientsd); /*Closes the socket descriptor*/
 
                 }
 
@@ -789,9 +801,10 @@ int main (int argc, char ** argv) {
 
                     *sd = clientsd;
 
+                    printf("Connection from a client has been accepted.\n");
+
                     client_service(sd);
 
- 
                 }
 
             }
