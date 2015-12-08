@@ -156,13 +156,15 @@ account * startAccount(int sock_desc, char name []) {
 
     }
 
-    pthread_mutex_unlock(&myBank->bankLock);
+    //pthread_mutex_unlock(&myBank->bankLock);
 
     if (myBank->numAccounts == i) {
 
         sprintf(message, "There are no accounts with the name \"%s\" currently open. Please try again later.\n\n", name);
 
         write(sock_desc, message, sizeof(message)-1);
+
+        pthread_mutex_unlock(&myBank->bankLock);
        
         return NULL;
 
@@ -179,6 +181,7 @@ account * startAccount(int sock_desc, char name []) {
                 write(sock_desc, message, sizeof(message)-1);
                 strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
                 write(sock_desc, message, sizeof(message)-1);
+                pthread_mutex_unlock(&myBank->bankLock);
                 return NULL;
             }      
         
@@ -196,7 +199,7 @@ account * startAccount(int sock_desc, char name []) {
 
         strcpy(message, "You have successfully started a session.\n\n");
         write(sock_desc, message, sizeof(message)-1);
-
+        pthread_mutex_unlock(&myBank->bankLock);
         return &myBank->accounts[i];
     }
 
