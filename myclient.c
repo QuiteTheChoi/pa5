@@ -58,11 +58,7 @@ void response_output(void * ptr) {
     printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
 
         while((check = read(0, buffer, sizeof(buffer)-1)) > 0) {
-                    /*printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");*/
-
-                    //buffer[check] = '\0';
-
-
+                 
             int n = write(sock_desc, buffer, sizeof(buffer)-1);
             if(n ==0){
                 printf("Cannot write to server. Connection closed.\n");
@@ -74,77 +70,12 @@ void response_output(void * ptr) {
             
             memset(buffer, '\0', sizeof(buffer));
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*int count = 0;
-
-    printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
-
-    while((check = read(0, buffer, sizeof(buffer)-1)) > 0) {
-        
-        if (count > 0) {
-            int n = write(sock_desc, buffer, sizeof(buffer)-1);
-
-            if(n ==0){
-                printf("Cannot write to server. Connection closed.\n");
-                exit(0);
-            }
-            sleep(2);
-            printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
-            memset(buffer, '\0', sizeof(buffer));
-            continue;
-        }
-        
-        int n = write(sock_desc, buffer, sizeof(buffer)-1);
-
-        if(n ==0){
-            printf("Cannot write to server. Connection closed.\n");
-            exit(0);
-        }
-        sleep(2);
-        printf("Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
-        
-        memset(buffer, '\0', sizeof(buffer));
-
-        count++;
-
-    }*/
 
 }
 
 int main(int argc, char *argv[]) {
     struct addrinfo request;
     struct addrinfo *result, *rp;
-    //int  sd;
     int s, j;
     size_t len;
     ssize_t nread;
@@ -165,24 +96,10 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
     
-    /*memset(&request, 0, sizeof(struct addrinfo));
-    request.ai_flags = 0;
-    request.ai_family = AF_INET;
-    request.ai_socktype = SOCK_STREAM;
-    request.ai_protocol = 0;
-    request.ai_addrlen = 0;
-    request.ai_addr = NULL;
-    request.ai_canonname = NULL;
-    request.ai_next = NULL;*/
-
-    //int sockConnection;
-
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         fprintf(stderr, "Socket error.\n");
         exit(1);
     }
-
-    //globalSD = sd;
 
     server = gethostbyname(argv[1]);
     
@@ -191,19 +108,13 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    int portnum = 7770;
+    int portnum = 6969;
 
     bzero((char *)&dest, sizeof(dest));
     dest.sin_family = AF_INET;
     bcopy((char *)server->h_addr, (char *)&dest.sin_addr.s_addr, server->h_length);
     dest.sin_port = htons(portnum);
-    //dest.sin_addr.s_addr = INADDR_ANY;
-
-    /*if (inet_aton(argv[1], &dest.sin_addr.s_addr) == 0) {
-        fprintf(stderr, "Address error.\n");
-        exit(1);
-    }*/
-
+    
         /*---Connect to server---*/
     if (connect(sd, (struct sockaddr*)&dest, sizeof(dest)) != 0 ) {
         printf("%s\n", strerror(errno));
@@ -213,27 +124,6 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Connection to server has been established.\n");
-
-    /*if (getaddrinfo(argv[1], "35000", &request, &result) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
-        exit(EXIT_FAILURE);
-    }
-
-    for (rp = result; rp != NULL; rp = rp->ai_next) {
-        *sd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (*sd == -1)
-            continue;
-        if (connect(*sd, rp->ai_addr, rp->ai_addrlen) != -1)
-            break;*/                  /* Success */
-        //close(*sd);
-    //}
-    
-    //if (rp == NULL) {               /* No address succeeded */
-        /*fprintf(stderr, "Could not connect\n");
-        exit(1);
-    }
-    
-    freeaddrinfo(result);*/           /* No longer needed */
 
     pthread_t command, response;
 

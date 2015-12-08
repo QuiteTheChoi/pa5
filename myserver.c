@@ -38,37 +38,6 @@ pthread_mutexattr_t mutattrBank;
 pthread_mutexattr_t mutattrAcct;
 pthread_t bankInfo;
 
-void exitSession(int, account *);
-
-/*static void sigchld_handler(int signo) {
-    
-    if (signo == SIGCHLD) {
-
-        while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {
-            printf("I'M WAITING.\n");
-        }
-    }
-
-}*/
-
-/*static void sigint_handler(int signo) {
-
-    if (signo == SIGINT) {*/
-
-        /*if (tempAccount != NULL && tempAccount->session != 0) {
-            tempAccount->session = 0;
-            pthread_mutex_unlock(&tempAccount->accountLock);
-            printf("The bank has disconnected from the client(s).\n");
-            exit(0);
-        }*/
-
-        /*printf("The bank has disconnected from a client.\n");
-        exit(0);
-
-    }
-
-}*/
-
 int openAccount(int sock_desc, char name []) {
     
     char message[500];
@@ -77,14 +46,11 @@ int openAccount(int sock_desc, char name []) {
 
     while (pthread_mutex_trylock(&myBank->bankLock) != 0) {
         
-        //char message[500];
-        
         if (count > 8) {
             strcpy(message, "The bank is currently overloaded with clients. Please try again later.\n\n");
             write(sock_desc, message, sizeof(message)-1);
             strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
             write(sock_desc, message, sizeof(message)-1);
-            //exitSession(sockd, tempAccount);
             return 1;
         }
 
@@ -155,13 +121,11 @@ account * startAccount(int sock_desc, char name []) {
 
     while (pthread_mutex_trylock(&myBank->bankLock) != 0) {
         
-        //char message[500];
         if (count > 8) {
             strcpy(message, "The bank is currently busy. Please try again later.\n\n");
             write(sock_desc, message, sizeof(message)-1);
             strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
             write(sock_desc, message, sizeof(message)-1);
-            //exitSession(sockd, tempAccount);
             return NULL;
         }
        
@@ -210,14 +174,11 @@ account * startAccount(int sock_desc, char name []) {
 
         while (pthread_mutex_trylock(&myBank->accounts[i].accountLock) != 0) {
         
-        //char message[500];
-
             if (count > 8) {
                 sprintf(message, "%s is currently in session. Please try again later.\n\n", name);
                 write(sock_desc, message, sizeof(message)-1);
                 strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
                 write(sock_desc, message, sizeof(message)-1);
-                //exitSession(sockd, tempAccount);
                 return NULL;
             }      
         
@@ -243,8 +204,7 @@ account * startAccount(int sock_desc, char name []) {
 
 void credit(int sock_desc, account * acc, float val) {
     char message[500];
-    //float round = roundf(val*100)/100;
-    //acc->balance += round;
+    
     acc->balance += val;
     sprintf(message, "You have successfully credited $%.2f to your account.\n\n", val);
     write(sock_desc, message, sizeof(message)-1);
@@ -252,9 +212,7 @@ void credit(int sock_desc, account * acc, float val) {
 
 
 void debit(int sock_desc, account * acc, float val) {
-    //float round = roundf(val*100)/100;
-
-    //if (acc->balance < round) {
+    
     if (acc->balance < val) {
         char message[500];
         strcpy(message, "The amount that you have entered is greater than your balance. You may not debit from your account at this time.\n\n");
@@ -263,7 +221,6 @@ void debit(int sock_desc, account * acc, float val) {
 
     else {
         char message[500];
-        //acc->balance -= round;
         acc->balance -= val;
         sprintf(message, "You have successfully debited $%.2f from your account.\n\n", val);
         write(sock_desc, message, sizeof(message)-1);
@@ -295,11 +252,7 @@ void exitSession(int sock_desc, account * acc) {
 
 void client_service(int * sock_desc) {
 
-    //printf("Connection from a client has been accepted.\n");
-
     sockd = *(int *)sock_desc;
-
-    //account * tempAccount = NULL;
 
     char buffer[500];
 
@@ -357,7 +310,6 @@ void client_service(int * sock_desc) {
 
                 float round = roundf(val*100)/100;
 
-                //if ((fabs(val - 0.0f) < 0.00001) || (val < 0.0f)) {
                 if ((fabs(round - 0.0f) < 0.00001) || (round < 0.0f)) {
                     
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
@@ -368,7 +320,6 @@ void client_service(int * sock_desc) {
 
                 else {
 
-                    //credit(sockd, tempAccount, val);
                     credit(sockd, tempAccount, round);
 
                 }
@@ -399,7 +350,6 @@ void client_service(int * sock_desc) {
 
                 float round = roundf(val*100)/100;
 
-                //if ((fabs(val - 0.0f) < 0.00001) || (val < 0.0f)) {
                 if ((fabs(round - 0.0f) < 0.00001) || (round < 0.0f)) {
 
                     strcpy(response, "The value that you have entered is 0 or invalid.\n\n");
@@ -410,7 +360,6 @@ void client_service(int * sock_desc) {
 
                 else {
 
-                    //debit(sockd, tempAccount, val);
                     debit(sockd, tempAccount, round);
 
                 }
@@ -538,7 +487,6 @@ void printBankInfo(void * ptr) {
             write(sock_desc, message, sizeof(message)-1);
             strcpy(message, "Enter \"open [your name here]\" to open an account.\nEnter \"start [your name here]\" to start a session.\nEnter \"credit [your amount here]\" for credit.\nEnter \"debit [your amount here]\" for debit.\nEnter \"balance\" for your balance.\nEnter \"finish\" to finish a session.\nEnter \"exit\" to exit.\n");
             write(sock_desc, message, sizeof(message)-1);
-            //exitSession(sockd, tempAccount);
             return;
         }
         
@@ -571,21 +519,10 @@ void printBankInfo(void * ptr) {
 
 }
 
-/*static void signal_handler(int signo) {
-
-    if (signo == SIGCHLD) {
-
-        while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {
-
-        }
-    }
-}*/
-
 int main (int argc, char ** argv) {
 
     char buffer[500];
 
-    //struct addrinfo request, *result, *rp;
 
     struct sockaddr_in saddr;
 
@@ -593,52 +530,17 @@ int main (int argc, char ** argv) {
 
     int check, sd;
 
-    //signal(SIGCHLD, sigchld_handler);
-
-    //struct sigaction action;
-
-    /*action.sa_flags = 0;
-    action.sa_handler = signal_handler;
-    sigemptyset(&action.sa_mask);
-    sigaction(SIGINT, &action, 0);
-    sigemptyset(&action.sa_mask);
-    sigaction(SIGCHLD, &action, 0);*/
-
-
-    /*memset(&request, 0, sizeof(struct addrinfo));
-
-    request.ai_flags = AI_PASSIVE;
-    request.ai_family = AF_INET;
-    request.ai_socktype = SOCK_STREAM;
-    request.ai_protocol = 0;
-    request.ai_addrlen = 0;
-    request.ai_addr = NULL;
-    request.ai_canonname = NULL;
-    request.ai_next = NULL;*/
-
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         fprintf(stderr, "Socket error.\n");
         exit(1);
     }
 
-    int portnum = 7770;
+    int portnum = 6969;
 
     bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(portnum);
     saddr.sin_addr.s_addr = INADDR_ANY;
-
-    //check = getaddrinfo(NULL, "35000", &request, &result);
-
-    /*if (check != 0){
-        fprintf(stderr, "Error with getaddrinfo.\n");
-    }*/
-
-    /*for (rp = result; rp != NULL; rp = rp->ai_next) {
-        sd = socket(request.ai_family, request.ai_socktype, request.ai_protocol);
-
-        if (sd == -1)
-            continue;*/
 
     if (bind(sd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
         printf("%s\n", strerror(errno));
@@ -652,29 +554,9 @@ int main (int argc, char ** argv) {
         exit(1);
     }
 
-
-    /*if (bind(sd, rp->ai_addr, rp->ai_addrlen) == 0)
-            break;
-
-        close(sd);
-    }
-
-    if (rp == NULL) {
-        fprintf(stderr, "ERROR: Could not bind.\n");
-        return 1;
-    }
-
-    freeaddrinfo(result);
-
-    listen(sd, 20);*/
-
-    //shmem_create();
-
     key_t key;
     int	shmid;
-    //char * p;
     int	size = 4096;
-    //char message[] = "Look at the guy next to you and wake him up.\n";
     
     if (errno = 0, (key = ftok( ".", 42 )) == -1){
         printf("ftok() failed  errno :  %s\n", strerror(errno));
@@ -683,8 +565,7 @@ int main (int argc, char ** argv) {
     
     else if (errno = 0, (shmid = shmget( key, size, 0666 | IPC_CREAT | IPC_EXCL )) != -1) {		// create ok?{
         
-    errno = 0;
-        //p = (char *)shmat( shmid, 0, 0 );
+        errno = 0;
         myBank = (bank *)shmat(shmid, 0, 0);
         pthread_mutexattr_init(&mutattrBank);
         pthread_mutexattr_setpshared(&mutattrBank, PTHREAD_PROCESS_SHARED);
@@ -697,27 +578,12 @@ int main (int argc, char ** argv) {
         else{
 
             myBank->numAccounts = 0;
-            // Acquired shared memory segment.  Has to wait until segment is properly initialized by creator.
-            // Could spin around until initialization complete.
-            /*while ( *p == 0 )
-            {
-                printf( "\x1b[2;32mFound segment waiting for initialization to complete.\x1b[0m\n" );
-            }
-            printf( "Process %d gets message from shared memory segment attached at address %#x.\n", getpid(), p );
-            printf( "\n%s\n", p + sizeof(int) );
-            shmdt( p );*/
-            //shmdt(myBank);
 
             int clientsd;
-            //while(1){
+            
             while((clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen)) != -1){
-                //int clientsd;
-
-                //clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
                 
                 pthread_create(&bankInfo, NULL, (void *) printBankInfo, (void *) &sd);
-
-                //pthread_join(bankInfo, NULL);
 
                 int pid = fork();
 
@@ -733,8 +599,6 @@ int main (int argc, char ** argv) {
                     int * sd = (int *)malloc(sizeof(int));
 
                     *sd = clientsd;
-
-                    //signal(SIGINT, sigint_handler);
 
                     printf("Connection from a client has been accepted.\n");
 
@@ -764,27 +628,12 @@ int main (int argc, char ** argv) {
             exit(1);
         }
         else{
-            // Acquired shared memory segment.  Has to wait until segment is properly initialized by creator.
-            // Could spin around until initialization complete.
-            /*while ( *p == 0 )
-            {
-                printf( "\x1b[2;32mFound segment waiting for initialization to complete.\x1b[0m\n" );
-            }
-            printf( "Process %d gets message from shared memory segment attached at address %#x.\n", getpid(), p );
-            printf( "\n%s\n", p + sizeof(int) );
-            shmdt( p );*/
-            //shmdt(myBank);
-
+            
             int clientsd;
-            //while(1){
+            
             while((clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen)) != -1){
-                //int clientsd;
-
-                //clientsd = accept(sd, (struct sockaddr *)&saddr, &saddrlen);
 
                 pthread_create(&bankInfo, NULL, (void *) printBankInfo, (void *) &sd);
-
-                //pthread_join(bankInfo, NULL);
 
                 int pid = fork();
 
