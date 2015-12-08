@@ -266,7 +266,7 @@ void client_service(int * sock_desc) {
 
         if (strcmp(command, "open") == 0) {
            
-            if (tempAccount->session != 0) {
+            if (tempAccount!= NULL && tempAccount->session != 0) {
 
                 strcpy(response, "You are already logged in. You may not open an account.\n\n");
 
