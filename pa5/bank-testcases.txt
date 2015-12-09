@@ -84,4 +84,16 @@ Output: z session closes, mutex unlocks, upon connecting again, z is available t
 
 Testcase 22: crtl-c in client with z in session. 
 Input: ctrl-z
-Output: z session closes, mutex unlocks, upon connecting again, z is available to connect again. 
+Output: z session closes, mutex unlocks, upon connecting again, z is available to connect again.
+
+Testcase 23: Two clients trying to connect to the same session.
+Input: two sessions trying to connect. 
+Output: 8 trylock messages, then returned to menu. 
+
+Testcase 24: Two clients add 20 accounts. Neither can add another account. 
+Input: 20 accounts, 2 clients
+Output: Not able to create new account.
+
+Testcase 25: Two clients, 20 accounts, both can work on different sesssions. 
+Input: 20 accounts, 2 clients, 2 sessions
+Output: Working code.

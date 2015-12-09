@@ -38,6 +38,18 @@ pthread_mutexattr_t mutattrBank;
 pthread_mutexattr_t mutattrAcct;
 pthread_t bankInfo;
 
+void sigchld_handler(int signo) {
+
+    if (signo == SIGCHLD) {
+
+        while (waitpid((pid_t)(-1), 0, WNOHANG) > 0) {
+
+        }
+
+    }
+
+}
+
 int openAccount(int sock_desc, char name []) {
     
     char message[500];
@@ -600,10 +612,12 @@ int main (int argc, char ** argv) {
                 
                 pthread_create(&bankInfo, NULL, (void *) printBankInfo, (void *) &sd);
 
+
                 int pid = fork();
 
                 if (pid != 0) { /*If this is the parent process*/
-                    
+                   
+                    signal(SIGCHLD, sigchld_handler);
                     shmctl(shmid, IPC_RMID, NULL); /*Removes the shared memory segment*/
                     close(clientsd); /*Closes the socket descriptor*/
 
@@ -654,6 +668,7 @@ int main (int argc, char ** argv) {
 
                 if (pid != 0) { /*If this is the parent process*/
 
+                    signal(SIGCHLD, sigchld_handler);
                     shmctl(shmid, IPC_RMID, NULL); /*Removes the shared memory segment*/
                     close(clientsd); /*Closes the socket descriptor*/
 
