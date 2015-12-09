@@ -563,7 +563,7 @@ int main (int argc, char ** argv) {
         exit(1);
     }
 
-    int portnum = 6969;
+    int portnum = 7770;
 
     bzero((char *)&saddr, sizeof(saddr));
     saddr.sin_family = AF_INET;
